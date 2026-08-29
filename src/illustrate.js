@@ -14,7 +14,7 @@ const DB_NAME = 'qinglan-art'
 const STORE = 'frames'
 const MAX_FRAMES = 28
 const STYLE = [
-  'Cinematic still from a dark xianxia family epic set on Qinglan Mountain.',
+  'Cinematic still from a dark xianxia family epic: the Godfather Clan on Qinglan Mountain.',
   'Ink-wash painting with gold leaf, oil-lamp chiaroscuro, restrained Coppola lighting.',
   'Cultivation robes, mountain sect architecture, no modern objects.',
   'Absolutely no text, letters, watermarks, logos, captions, or UI.',
@@ -136,7 +136,7 @@ function openRouterHeaders(config) {
   if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`
   if (/openrouter\.ai/i.test(config.baseUrl || '')) {
     headers['HTTP-Referer'] = window.location.origin || 'https://yip-lgtm.github.io'
-    headers['X-Title'] = 'Qinglan Cultivation Family'
+    headers['X-Title'] = 'Godfather Clan'
   }
   return headers
 }

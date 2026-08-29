@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a 3-minute pitch deck for 青嵐世家."""
+"""Generate a 3-minute pitch deck for 教父世家."""
 from pathlib import Path
 
 from pptx import Presentation
@@ -17,7 +17,7 @@ CREAM = RGBColor(0xF4, 0xE8, 0xC8)
 MUTED = RGBColor(0xB8, 0xA8, 0x88)
 CYAN = RGBColor(0x7E, 0xC8, 0xC3)
 
-OUT = Path(__file__).resolve().parents[1] / "docs" / "青嵐世家-3分鐘簡報.pptx"
+OUT = Path(__file__).resolve().parents[1] / "docs" / "教父世家-3分鐘簡報.pptx"
 
 
 def set_run(run, text, size=18, bold=False, color=CREAM, font="Microsoft YaHei"):
@@ -100,9 +100,9 @@ def main():
     # 1 Title
     s = new_slide(prs)
     tb(s, Inches(0.8), Inches(1.5), Inches(11.5), Inches(0.5),
-       [("青嵐山門 · 修仙世家模擬", 16, False, GOLD)], PP_ALIGN.CENTER)
+       [("蒼梧山 · 修仙家族史詩", 16, False, GOLD)], PP_ALIGN.CENTER)
     tb(s, Inches(0.8), Inches(2.05), Inches(11.5), Inches(1.1),
-       [("青嵐世家", 54, True, GOLD)], PP_ALIGN.CENTER)
+       [("教父世家", 54, True, GOLD)], PP_ALIGN.CENTER)
     tb(s, Inches(0.8), Inches(3.2), Inches(11.5), Inches(0.7),
        [("你唔係點擊升級。你係天道。", 26, False, CREAM)], PP_ALIGN.CENTER)
     tb(s, Inches(0.8), Inches(4.1), Inches(11.5), Inches(1.2),
@@ -111,7 +111,7 @@ def main():
            ("玩：https://yip-lgtm.github.io/family/", 18, True, CYAN),
            ("源碼：https://github.com/yip-lgtm/family.git", 16, False, MUTED),
        ], PP_ALIGN.CENTER)
-    add_notes(s, """大家好。呢個係青嵐世家。
+    add_notes(s, """大家好。呢個係教父世家。
 唔係又一個點擊升級遊戲。你入去唔係一個數字，而係一間住喺青嵐山門嘅修仙世家。
 你係天道：睇住人長大、結緣、走火、身死道消；間中伸手改命。
 而家就可以玩：yip-lgtm.github.io/family
@@ -125,7 +125,7 @@ def main():
         ("玩家角色：天道，唔係農夫", 32, True, CREAM)])
     cards = [
         ("傳統放置", "囤靈氣\n買升級\n睇數字漲", MUTED),
-        ("青嵐世家", "養人\n改命\n睇戲", GOLD),
+        ("教父世家", "養人\n改命\n睇戲", GOLD),
         ("你出手", "賜福 · 天劫\n心魔 · 指派\n耗的是業力", CYAN),
     ]
     for i, (t, b, c) in enumerate(cards):
@@ -136,7 +136,7 @@ def main():
         tb(s, x + Inches(0.25), Inches(3.0), Inches(3.3), Inches(3.0),
            [(b, 22, False, CREAM)])
     add_notes(s, """傳統放置遊戲：你係農夫，囤資源、買升級、睇數字。
-青嵐唔係。畫面中間個靈樞可以聚氣，但真正玩法係右邊同下面：一班有根骨、心性、境界、壽元、心情、關係網嘅人。
+教父世家唔係。畫面中間個靈樞可以聚氣，但真正玩法係右邊同下面：一班有根骨、心性、境界、壽元、心情、關係網嘅人。
 你用業力賜福、降天劫、種心魔、或者指派去丹房藏經閣。
 你少出手，山門自己過月。你出手，就係改命。""")
 
@@ -344,7 +344,7 @@ world 管規則，screenplay 管戲，main 管天道介面，style、fx、audio 
     tb(s, Inches(0.8), Inches(5.5), Inches(11.7), Inches(0.8),
        [("開源 · 瀏覽器即玩 · Key 可選 · 劇組永遠代班", 16, False, MUTED)], PP_ALIGN.CENTER)
     add_notes(s, """收束。
-青嵐世家想證明：放置遊戲可以係一場有人、有怨、有遺產嘅戲，而唔係一條升級曲線。
+教父世家想證明：放置遊戲可以係一場有人、有怨、有遺產嘅戲，而唔係一條升級曲線。
 你係天道。少出手。睇住人。
 連結再講一次：github.io/family 同 github.com/yip-lgtm/family。
 多謝。歡迎而家一齊開。""")

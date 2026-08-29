@@ -552,7 +552,7 @@ export function recruitMember(world, free = false) {
   const person = makePerson(world, { role: 'disciple', age: 15 + Math.floor(Math.random() * 12), realm: 0 })
   world.people.push(person)
   world.selectedId = person.id
-  think(person, `${person.name}拜入青嵐，眼底還有凡塵未褪。`)
+  think(person, `${person.name}拜入教父世家，眼底還有凡塵未褪。`)
   return { ok: true, person }
 }
 

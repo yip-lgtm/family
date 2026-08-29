@@ -216,7 +216,7 @@ function parseModelText(text) {
       if (data.narration || data.line || data.title) {
         return {
           title: data.title || '未名場次',
-          slug: data.slug || 'INT. 青嵐 · 夜',
+          slug: data.slug || 'INT. 教父世家 · 夜',
           narration: data.narration || '',
           line: data.line || '',
           speaker: data.speaker || '',
@@ -229,7 +229,7 @@ function parseModelText(text) {
   const [first, ...rest] = trimmed.split('\n').map((line) => line.trim()).filter(Boolean)
   return {
     title: first?.slice(0, 12) || '連載場次',
-    slug: 'INT. 青嵐世家 · 連續',
+    slug: 'INT. 教父世家 · 連續',
     narration: rest.join('') || trimmed,
     line: '',
     speaker: '',
@@ -248,7 +248,7 @@ async function requestLlm(config, world, part, previousTitles) {
       {
         role: 'system',
         content: [
-          '你是電影編劇，要把「青嵐世家」寫成向《教父》三部曲致敬的修仙家族史詩。',
+          '你是電影編劇，要把「教父世家」寫成向《教父》三部曲致敬的修仙家族史詩。',
           '風格：克制、陰冷、家庭倫理與權力並置；旁白像Coppola鏡頭，對白短而重。',
           '禁止直接抄襲電影原句。用修仙意象改寫：道盟、靈石、天劫、渡劫、飛升、血契、橙（死亡預兆）。',
           '只輸出 JSON：{"title","slug","narration","line","speaker"}',
@@ -273,7 +273,7 @@ async function requestLlm(config, world, part, previousTitles) {
   if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`
   if (/openrouter\.ai/i.test(base)) {
     headers['HTTP-Referer'] = window.location.origin || 'https://yip-lgtm.github.io'
-    headers['X-Title'] = 'Qinglan Cultivation Family'
+    headers['X-Title'] = 'Godfather Clan'
   }
   const ctrl = new AbortController()
   const timer = window.setTimeout(() => ctrl.abort(), 20000)

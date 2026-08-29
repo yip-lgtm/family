@@ -1,4 +1,4 @@
-# 青嵐世家 · Cultivation Family
+# 教父世家 · Godfather Clan
 
 A polished dark-fantasy HTML5 idle game about building an immortal cultivation
 lineage. Gather spiritual Qi, recruit family members, break through realms,
@@ -26,8 +26,8 @@ Live site: https://yip-lgtm.github.io/family/
 
 Cantonese product pitch (10 slides, 16:9, includes production workflow, speaker notes included):
 
-- [docs/青嵐世家-3分鐘簡報.pptx](docs/青嵐世家-3分鐘簡報.pptx)
-- [docs/青嵐世家-3分鐘講稿.md](docs/青嵐世家-3分鐘講稿.md)
+- [docs/教父世家-3分鐘簡報.pptx](docs/教父世家-3分鐘簡報.pptx)
+- [docs/教父世家-3分鐘講稿.md](docs/教父世家-3分鐘講稿.md)
 
 Regenerate after copy changes:
 

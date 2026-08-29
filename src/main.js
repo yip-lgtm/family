@@ -49,11 +49,11 @@ document.querySelector('#app').innerHTML = `
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
   <header class="topbar">
-    <a class="brand" href="#" aria-label="青嵐世家首頁">
-      <span class="brand-seal">嵐</span>
+    <a class="brand" href="#" aria-label="教父世家首頁">
+      <span class="brand-seal">父</span>
       <span class="brand-copy">
-        <strong>青嵐世家</strong>
-        <small>HEAVEN'S WILL</small>
+        <strong>教父世家</strong>
+        <small>THE FAMILY</small>
       </span>
     </a>
     <div class="fate-chip-row" aria-label="天道總覽">
@@ -220,7 +220,7 @@ document.querySelector('#app').innerHTML = `
   </main>
 
   <footer>
-    <span>青嵐家訓</span>
+    <span>教父家訓</span>
     <p>修身 · 齊家 · 問道 · 長生</p>
     <span><a class="footer-bgm" href="https://www.bilibili.com/video/BV1kNEP6cEmu" target="_blank" rel="noreferrer">BGM 關注塔菲喵</a></span>
   </footer>
@@ -330,7 +330,7 @@ const art = createIllustrator({
 })
 
 const logs = [
-  { time: calendarLabel(world), text: '青嵐世家於蒼梧山立下道統。天道臨世，開始觀察族人自行演化。', tone: 'gold' },
+  { time: calendarLabel(world), text: '教父世家於蒼梧山立下道統。天道臨世，開始觀察族人自行演化。', tone: 'gold' },
   { time: calendarLabel(world), text: '沈清梧入藏經閣，葉疏影在山門等人，白無塵已往後山。', tone: 'jade' },
 ]
 
@@ -708,7 +708,7 @@ els.recruitButton.addEventListener('click', () => {
   if (!result.ok) return
   audio.playRise()
   pressEffect(els.recruitButton)
-  addLog(`${result.person.name}拜入青嵐，靈根為${result.person.root.name}，性${result.person.nature.name}。`, 'jade')
+  addLog(`${result.person.name}拜入教父世家，靈根為${result.person.root.name}，性${result.person.nature.name}。`, 'jade')
   render()
 })
 
@@ -815,7 +815,7 @@ function restartClock() {
   }, Math.round(1600 / world.speed))
 }
 
-window.__cultivationFamily = {
+window.__jiaofuFamily = window.__cultivationFamily = {
   triggerRandomEvent: () => {
     const reports = triggerOmen(world, true)
     applyReports(reports)
