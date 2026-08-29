@@ -107,7 +107,7 @@ def main():
        [("你唔係點擊升級。你係天道。", 26, False, CREAM)], PP_ALIGN.CENTER)
     tb(s, Inches(0.8), Inches(4.1), Inches(11.5), Inches(1.2),
        [
-           ("3 分鐘產品簡報  ·  GitHub Pages", 16, False, MUTED),
+           ("約 3 分鐘  ·  含製作 workflow", 16, False, MUTED),
            ("玩：https://yip-lgtm.github.io/family/", 18, True, CYAN),
            ("源碼：https://github.com/yip-lgtm/family.git", 16, False, MUTED),
        ], PP_ALIGN.CENTER)
@@ -116,7 +116,7 @@ def main():
 你係天道：睇住人長大、結緣、走火、身死道消；間中伸手改命。
 而家就可以玩：yip-lgtm.github.io/family
 源碼喺 github.com/yip-lgtm/family
-今日三分鐘：做咩、點玩、點同《教父》同 AI 編劇夾埋。""")
+今日三分鐘：做咩、點做出嚟、點玩。""")
 
     # 2 Not a clicker
     s = new_slide(prs)
@@ -244,10 +244,71 @@ def main():
 背景音樂係嗶哩官方嵌入《中國風純音樂》，有牌有鏈接。右下角可縮成一條，唔擋地圖。
 技術棧刻意薄：Vite、原生 JS。規則引擎同編劇組分開。npm run dev 或者直接開 Pages。""")
 
-    # 7 How to play 3 min
+    # 7 Production workflow
+    s = new_slide(prs)
+    tb(s, Inches(0.7), Inches(0.28), Inches(12), Inches(0.85),
+       [("06  ·  遊戲製作 workflow", 14, False, GOLD),
+        ("先立天道，再寫規則，最後先上金漆", 26, True, CREAM)])
+    flow = [
+        ("1", "立意", "玩家係天道。\n養人、改命、睇戲。\n唔做點擊農夫。"),
+        ("2", "規則", "world.js\n月結、根骨、壽元\n業力、死亡、傳承。"),
+        ("3", "編劇", "screenplay.js\n三幕節奏 + 劇組代班。\n戲寫入心事同關係。"),
+        ("4", "皮與聲", "CSS 金漆、Canvas 靈塵、\nWeb Audio、嗶哩嵌入。\n零外鏈圖。"),
+        ("5", "試玩", "Vite 開 /family/\n改完即睇。\n細畫面、BGM、文案。"),
+        ("6", "出貨", "npm run build\n推 gh-pages。\ngithub.io/family"),
+    ]
+    for i, (n, t, b) in enumerate(flow):
+        col, row = i % 3, i // 3
+        x, y = Inches(0.5 + col * 4.2), Inches(1.35 + row * 2.8)
+        box(s, x, y, Inches(4.0), Inches(2.6), RGBColor(0x14, 0x10, 0x0A), GOLD)
+        tb(s, x + Inches(0.2), y + Inches(0.18), Inches(3.6), Inches(0.4),
+           [(n + "  ·  " + t, 18, True, GOLD)])
+        tb(s, x + Inches(0.2), y + Inches(0.7), Inches(3.6), Inches(1.7),
+           [(line, 15, False, CREAM) for line in b.split("\n")])
+    add_notes(s, """製作唔係先畫皮。先問：玩家係邊個？答案係天道。
+第二先寫規則引擎 world.js：每個月人自己揀去邊、會病、會走火、會死，業力先可以改命。
+第三先有編劇組 screenplay.js：三幕致敬教父節奏，劇組代班保證冇 Key 都有戲。
+第四先上金漆：CSS、Canvas、Web Audio、嗶哩官方嵌入。無外部圖，Pages 先載得快。
+第五現場試：Vite 開 /family/，改完即睇。BGM 太大、文案唔順，呢一步先修。
+第六出貨：npm run build，推 gh-pages，base 設 /family/，就係而家呢個站。""")
+
+    # 8 Engineering loop
+    s = new_slide(prs)
+    tb(s, Inches(0.7), Inches(0.28), Inches(12), Inches(0.85),
+       [("07  ·  工程回路", 14, False, GOLD),
+        ("六個檔，一條每日回路：改 → 睇 → 推", 26, True, CREAM)])
+    modules = [
+        ("world.js", "月結、人物、天道三鍵"),
+        ("screenplay.js", "導演、三幕、OpenRouter"),
+        ("main.js", "HUD、地圖、檢視、操作"),
+        ("style.css", "金漆牌坊、墨底描金"),
+        ("fx.js", "靈塵、聚氣、突破金光"),
+        ("audio.js", "木魚磬雷 + 嗶哩嵌入"),
+    ]
+    for i, (name, blurb) in enumerate(modules):
+        col, row = i % 3, i // 3
+        x, y = Inches(0.5 + col * 4.2), Inches(1.28 + row * 1.7)
+        box(s, x, y, Inches(4.0), Inches(1.52), RGBColor(0x14, 0x10, 0x0A), GOLD)
+        tb(s, x + Inches(0.2), y + Inches(0.18), Inches(3.6), Inches(0.4),
+           [(name, 18, True, CYAN)])
+        tb(s, x + Inches(0.2), y + Inches(0.68), Inches(3.6), Inches(0.6),
+           [(blurb, 15, False, CREAM)])
+    box(s, Inches(0.5), Inches(4.8), Inches(12.3), Inches(2.15), RGBColor(0x14, 0x10, 0x0A), CYAN)
+    tb(s, Inches(0.75), Inches(4.95), Inches(11.8), Inches(1.85), [
+        ("日常　改規則或文案 → npm run dev → 現場睇一場戲 → git commit", 16, True, CYAN),
+        ("出貨　npm run build → 將 dist 推去 gh-pages → https://yip-lgtm.github.io/family/", 16, False, CREAM),
+        ("約束　唔下載嗶哩音源 · 唔抄《教父》對白 · Key 只存瀏覽器 · 劇組永遠可代班", 15, False, MUTED),
+    ])
+    add_notes(s, """工程刻意薄：六個檔，冇框架組件庫。
+world 管規則，screenplay 管戲，main 管天道介面，style、fx、audio 管現場。
+每日回路就係：改一條規則或者一句文案，開 Vite 睇，覺得山門仲似一間屋，先 commit。
+出貨唔使後端：build 完推 gh-pages，base 係 /family/。
+三條紅線：唔偷嗶哩音、唔抄教父對白、Key 唔上伺服器。劇組代班永遠兜底。""")
+
+    # 9 How to play 3 min
     s = new_slide(prs)
     tb(s, Inches(0.7), Inches(0.3), Inches(12), Inches(0.85),
-       [("06  ·  而家點玩（三分鐘）", 14, False, GOLD),
+       [("08  ·  而家點玩（三分鐘）", 14, False, GOLD),
         ("四步入局，唔使註冊", 28, True, CREAM)])
     steps = [
         ("1", "打開連結", "yip-lgtm.github.io/family\n撳「承天命」。"),
@@ -268,7 +329,7 @@ def main():
 四：只用一次天道：賜福或者天劫。然後停手。好嘅天道唔係不停改，而係改完就睇。
 可選：模型設定貼 OpenRouter Key，之後嘅戲會更貼近現場。冇 Key 一樣完整。""")
 
-    # 8 Close
+    # 10 Close
     s = new_slide(prs)
     tb(s, Inches(0.8), Inches(1.35), Inches(11.7), Inches(0.5),
        [("結  ·  家訓", 14, False, GOLD)], PP_ALIGN.CENTER)
