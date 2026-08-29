@@ -33,7 +33,8 @@ export const FREE_MODELS = [
   'nvidia/nemotron-3-super-120b-a12b:free',
 ]
 
-const LLM_COOLDOWN_MS = 120000
+const LLM_COOLDOWN_MS = 8000
+const LLM_FAIL_RETRY_MS = 4000
 
 function blankConfig() {
   return {
@@ -341,7 +342,7 @@ export function createDirector() {
         state.lastLlmAt = Date.now()
       } catch (error) {
         state.error = error.message || 'LLM 失敗'
-        state.lastLlmAt = Date.now()
+        state.lastLlmAt = Date.now() - LLM_COOLDOWN_MS + LLM_FAIL_RETRY_MS
         scene = { ...studioScene(world, state.part, state.beat), source: 'studio' }
         state.source = 'studio'
       }
@@ -351,7 +352,8 @@ export function createDirector() {
     }
     scene.time = calendarLabel(world)
     scene.id = `${Date.now().toString(36)}-${state.beat}`
-    scene.artStatus = 'idle'
+    scene.artStatus = 'ready'
+    scene.artSource = 'demo'
     scene.artUrl = ''
     state.beat += 1
     state.scenes.unshift(scene)
@@ -364,6 +366,9 @@ export function createDirector() {
   async function onMonth(world) {
     if (world.paused) return null
     state.months += 1
+    const cfg = state.config
+    const cooled = Date.now() - state.lastLlmAt >= LLM_COOLDOWN_MS
+    if (llmReady(cfg) && cooled) return writeScene(world, true)
     if (state.months % 2 !== 0) return null
     return writeScene(world, false)
   }

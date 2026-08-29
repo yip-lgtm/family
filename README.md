@@ -13,12 +13,13 @@ Gameplay is inspired by Cultivation World Simulator, with a living clan of
 rule-driven cultivators. A screenwriter layer keeps generating Godfather-trilogy
 set pieces (rise, betrayal, elegy). Connect OpenRouter in 「模型設定」: base `https://openrouter.ai/api/v1`,
 model `openrouter/free`, and paste a free API key from
-https://openrouter.ai/keys (stored only in the browser). With a key, new scenes
-and the selected cultivator automatically receive illustrations via
-`google/gemini-2.5-flash-image` (OpenRouter Image API; billed to your key).
+https://openrouter.ai/keys (stored only in the browser). Opening portraits and
+scene stills ship with the game, so the roster and first cards never sit on a
+blank retry frame. With a key, the screenwriter and illustrator keep generating
+in the background and swap in LLM art when it lands (cached in IndexedDB;
+`google/gemini-2.5-flash-image` by default, compact 512-class frames).
 Turn this off with the 「自動生成插畫」 checkbox. Without a key the
-built-in studio writer continues the same trilogy and the gold paifang UI stays
-as the art.
+built-in studio writer continues the same trilogy and the bundled demo art stays.
 
 Live site: https://yip-lgtm.github.io/family/
 
@@ -39,7 +40,7 @@ python3 scripts/make-pitch-pptx.py
 ## Gameplay
 
 - **教父三部曲連載** — 持續生成立譜／背叛／輓歌場面；可接 LLM 或用劇組代班。
-- **自動插畫** — 有 OpenRouter Key 時，新場次與目前檢視的人物會自動出圖（可在模型設定關閉）。
+- **自動插畫** — 開場演示畫即開即見；有 OpenRouter Key 時，編劇與畫師在背景無限出圖，完成後替換演示畫（可在模型設定關閉）。
 - **天道干預** — 花費氣運賜福、降天劫、種心魔，或令某人改行。
 - **閉關修煉** — click the spirit nexus to gather clan Qi.
 - **納入弟子** — spend Qi to add a cultivator with random root and nature.

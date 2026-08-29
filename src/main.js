@@ -28,7 +28,7 @@ import {
   triggerOmen,
 } from './world.js'
 import { PARTS, createDirector, loadLlmConfig, saveLlmConfig, DEFAULT_MODEL, OPENROUTER_BASE, llmReady } from './screenplay.js'
-import { DEFAULT_IMAGE_MODEL, createIllustrator, imageReady } from './illustrate.js'
+import { DEFAULT_IMAGE_MODEL, createIllustrator, imageReady, sceneKey, portraitKey } from './illustrate.js'
 
 const audio = createAudio()
 const fx = createVisualFx()
@@ -82,7 +82,7 @@ document.querySelector('#app').innerHTML = `
       <div>
         <span class="eyebrow">蒼梧山 · 教父三部曲連載</span>
         <h1>家族史詩自動開拍，<em>權力、血債與輓歌</em></h1>
-        <p>編劇按《教父》三部曲推進：立譜報應、兄弟反目、飛升輓歌。有 OpenRouter Key 就由模型寫場，並自動生成場次插畫與人物畫像；沒有則劇組代班，金漆牌坊照常開拍。</p>
+        <p>編劇按《教父》三部曲推進：立譜報應、兄弟反目、飛升輓歌。開場畫像與場次插畫已隨遊戲附送，即開即見。有 OpenRouter Key，編劇與畫師會在背景無限連載、出圖，完成後自動替換演示畫；沒有則劇組代班，金漆牌坊照常開拍。</p>
       </div>
       <div class="fortune-mark" aria-label="家族氣運">
         <span>天道視角</span>
@@ -241,7 +241,7 @@ document.querySelector('#app').innerHTML = `
     <div class="trait-modal llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-modal-title">
       <small>SCREENWRITER</small>
       <h2 id="llm-modal-title">OpenRouter 模型與插畫</h2>
-      <p>預填 <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">OpenRouter</a> 接口。貼上 <code>sk-or-...</code> 後：編劇用免費文字路由連載，畫師用圖像模型自動出插畫。金鑰只存在你的瀏覽器。沒有金鑰則劇組代班，畫面維持金漆牌坊。</p>
+      <p>開場六人畫像與場次演示畫已打進遊戲，開局即見，不會再空白等圖。貼上 <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">OpenRouter</a> 的 <code>sk-or-...</code> 後：編劇用免費文字路由無限連載，畫師在背景以較細解析度出圖，畫好就替換演示畫。金鑰只存在你的瀏覽器。沒有金鑰則劇組代班，演示畫照常開拍。</p>
       <form id="llm-form" class="llm-form">
         <label>接口 Base URL<input id="llm-base" value="https://openrouter.ai/api/v1" placeholder="https://openrouter.ai/api/v1" /></label>
         <label>文字模型
@@ -257,16 +257,16 @@ document.querySelector('#app').innerHTML = `
         <label>插畫模型
           <input id="llm-image-model" list="llm-image-models" value="google/gemini-2.5-flash-image" placeholder="google/gemini-2.5-flash-image" />
           <datalist id="llm-image-models">
-            <option value="google/gemini-2.5-flash-image">Nano Banana · 約數美分／張</option>
+            <option value="google/gemini-2.5-flash-image">Nano Banana · 較快細圖</option>
+            <option value="black-forest-labs/flux.2-flex">Flux · 通常更快更平</option>
             <option value="google/gemini-3.1-flash-image-preview"></option>
-            <option value="black-forest-labs/flux.2-flex"></option>
             <option value="openai/gpt-5-image-mini"></option>
             <option value="bytedance-seed/seedream-4.5"></option>
           </datalist>
         </label>
         <label>OpenRouter API Key<input id="llm-key" type="password" placeholder="sk-or-v1-… 必填" autocomplete="off" /></label>
         <label class="llm-check"><input id="llm-enabled" type="checkbox" checked /> 允許呼叫 LLM 寫場</label>
-        <label class="llm-check"><input id="llm-illustrate" type="checkbox" checked /> 有 Key 時自動生成插畫（場次 16:9、人物 3:4）</label>
+        <label class="llm-check"><input id="llm-illustrate" type="checkbox" checked /> 有 Key 時在背景無限出圖（場次 16:9、人物 3:4；演示畫先上，畫好再換）</label>
         <div class="heaven-row">
           <button type="submit" class="time-btn">儲存並試寫一場</button>
           <button type="button" class="time-btn" id="llm-cancel">關閉</button>
@@ -400,8 +400,10 @@ function renderTraits() {
 }
 
 function sealMarkup(person, className) {
-  if (person.artUrl) {
-    return `<img class="${className} has-art" src="${person.artUrl}" alt="" />`
+  const src = person.artUrl
+  const upgrading = src && person.artSource !== 'llm' && art.isPending(portraitKey(person))
+  if (src) {
+    return `<img class="${className} has-art${upgrading ? ' is-upgrading' : ''}" src="${src}" alt="" />`
   }
   if (person.artStatus === 'pending' && imageReady()) {
     return `<span class="${className} art-pending" aria-hidden="true"></span>`
@@ -410,8 +412,10 @@ function sealMarkup(person, className) {
 }
 
 function sceneArtMarkup(scene) {
-  if (scene.artUrl) {
-    return `<img class="scene-art" src="${scene.artUrl}" alt="${escapeHtml(scene.title)}" />`
+  const src = scene.artUrl
+  const upgrading = src && scene.artSource !== 'llm' && art.isPending(sceneKey(scene))
+  if (src) {
+    return `<div class="scene-art-wrap${upgrading ? ' is-upgrading' : ''}"><img class="scene-art" src="${src}" alt="${escapeHtml(scene.title)}" /></div>`
   }
   if (scene.artStatus === 'pending') {
     return `<div class="scene-art art-pending" role="img" aria-label="插畫生成中"></div>`
@@ -419,7 +423,7 @@ function sceneArtMarkup(scene) {
   if (scene.artStatus === 'error') {
     return `<button type="button" class="scene-art art-retry" data-retry-art="${escapeHtml(scene.id || '')}">插畫未成 · 點此重試</button>`
   }
-  return ''
+  return `<div class="scene-art art-pending" role="img" aria-label="演示畫載入中"></div>`
 }
 
 function renderRoster() {
@@ -463,7 +467,7 @@ function renderInspector() {
     : '<li>尚無記憶殘片</li>'
   const arts = person.artifacts.length ? person.artifacts.join('、') : '無'
   const portrait = person.artUrl
-    ? `<img class="inspect-portrait" src="${person.artUrl}" alt="${escapeHtml(person.name)}" />`
+    ? `<img class="inspect-portrait${person.artSource !== 'llm' && art.isPending(portraitKey(person)) ? ' is-upgrading' : ''}" src="${person.artUrl}" alt="${escapeHtml(person.name)}" />`
     : person.artStatus === 'pending' && imageReady()
       ? '<span class="inspect-portrait art-pending" aria-hidden="true"></span>'
       : `<span class="inspect-seal">${person.name.slice(-1)}</span>`
@@ -550,12 +554,17 @@ function renderScreenplay() {
       <header>
         <small>${escapeHtml(scene.slug)}</small>
         <b>${escapeHtml(scene.title)}</b>
-        <i>${scene.source === 'llm' ? 'LLM' : '劇組'}${scene.artUrl ? ' · 插畫' : ''}</i>
+        <i>${scene.source === 'llm' ? 'LLM' : '劇組'}${scene.artSource === 'llm' ? ' · 插畫' : scene.artUrl ? ' · 演示畫' : ''}</i>
       </header>
       <p>${escapeHtml(scene.narration)}</p>
       ${scene.line ? `<blockquote>${escapeHtml(scene.line)}</blockquote>` : ''}
     </article>
   `).join('') || '<p class="token-empty">劇本尚未開場。</p>'
+}
+
+function paintVisibleArt() {
+  for (const person of living(world)) art.paintPerson(person)
+  for (const scene of director.state.scenes) art.paintScene(scene)
 }
 
 function render(opts = {}) {
@@ -565,8 +574,7 @@ function render(opts = {}) {
   renderMap()
   renderScreenplay()
   if (inspect) renderInspector()
-  const person = selected(world)
-  if (person) queueMicrotask(() => art.paintPerson(person))
+  queueMicrotask(paintVisibleArt)
 }
 
 function pickTraitChoices() {
@@ -709,6 +717,7 @@ els.recruitButton.addEventListener('click', () => {
   audio.playRise()
   pressEffect(els.recruitButton)
   addLog(`${result.person.name}拜入教父世家，靈根為${result.person.root.name}，性${result.person.nature.name}。`, 'jade')
+  art.paintPerson(result.person)
   render()
 })
 
@@ -833,6 +842,7 @@ window.__jiaofuFamily = window.__cultivationFamily = {
 
 renderLog()
 renderTraits()
+paintVisibleArt()
 render()
 restartClock()
 director.writeScene(world, false).then(publishScene)
