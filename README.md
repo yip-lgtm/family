@@ -11,6 +11,8 @@ inherit bloodline traits, and respond to random family events.
 - **老祖突破** — advance realms and choose one of three permanent family traits.
 - **家族突發事件** — every 15–30 seconds, fate may bring a boon or tribulation.
 
+Live site: https://yip-lgtm.github.io/family/
+
 ## Run locally
 
 ```bash
