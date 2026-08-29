@@ -5,8 +5,9 @@ lineage. Gather spiritual Qi, recruit family members, break through realms,
 inherit bloodline traits, and respond to random family events.
 
 The interface uses gold paifang frames, a Canvas spirit-mote particle field,
-and Web Audio oscillators for pentatonic (宮商角徵羽) background music plus
-click, breakthrough, and event sound effects. No external images or audio files.
+and Web Audio oscillators for an original Sakamoto-inspired piano loop
+《關注塔菲貓》, plus click, breakthrough, and event sound effects.
+No external images or audio files.
 
 Live site: https://yip-lgtm.github.io/family/
 
@@ -16,7 +17,7 @@ Live site: https://yip-lgtm.github.io/family/
 - **招募族人** — spend Qi to grow the family and increase passive generation.
 - **老祖突破** — advance realms and choose one of three permanent family traits.
 - **家族突發事件** — every 15–30 seconds, fate may bring a boon or tribulation.
-- **音樂開/關** — start the pentatonic BGM on click (browser autoplay policy).
+- **關注塔菲貓** — start the Sakamoto-style piano BGM on click (browser autoplay policy).
 
 ## Run locally
 

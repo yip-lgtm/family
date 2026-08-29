@@ -128,8 +128,14 @@ document.querySelector('#app').innerHTML = `
       </span>
     </a>
     <div class="topbar-end">
-      <button type="button" class="music-toggle" id="music-toggle" aria-pressed="false">
-        🔊 音樂開/關
+      <button
+        type="button"
+        class="music-toggle"
+        id="music-toggle"
+        aria-pressed="false"
+        title="坂本龍一風格原創鋼琴曲《關注塔菲貓》。點擊後播放。"
+      >
+        🎹 關注塔菲貓
       </button>
       <div class="world-state">
         <span class="pulse-dot"></span>
@@ -268,7 +274,7 @@ document.querySelector('#app').innerHTML = `
   <footer>
     <span>青嵐家訓</span>
     <p>修身 · 齊家 · 問道 · 長生</p>
-    <span>玄元146</span>
+    <span>BGM《關注塔菲貓》· 坂本風</span>
   </footer>
 
   <div id="trait-modal" class="modal-backdrop" aria-hidden="true">
@@ -517,7 +523,7 @@ elements.musicToggle.addEventListener('click', async () => {
   const on = await audio.setMusic(!audio.isMusicOn())
   elements.musicToggle.setAttribute('aria-pressed', String(on))
   elements.musicToggle.classList.toggle('is-on', on)
-  elements.musicToggle.textContent = on ? '🔊 音樂開' : '🔇 音樂關'
+  elements.musicToggle.textContent = on ? '🎹 塔菲貓播放中' : '🔇 關注塔菲貓'
 })
 
 elements.choices.addEventListener('click', (event) => {
