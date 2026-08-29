@@ -112,7 +112,7 @@ def main():
            ("源碼：https://github.com/yip-lgtm/family.git", 16, False, MUTED),
        ], PP_ALIGN.CENTER)
     add_notes(s, """大家好。呢個係教父世家。
-唔係又一個點擊升級遊戲。你入去唔係一個數字，而係一間住喺青嵐山門嘅修仙世家。
+唔係又一個點擊升級遊戲。你入去唔係一個數字，而係一間住喺教父山門嘅修仙世家。
 你係天道：睇住人長大、結緣、走火、身死道消；間中伸手改命。
 而家就可以玩：yip-lgtm.github.io/family
 源碼喺 github.com/yip-lgtm/family

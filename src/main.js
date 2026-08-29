@@ -149,7 +149,7 @@ document.querySelector('#app').innerHTML = `
       <section class="cultivation-stage world-stage">
         <div class="stage-header">
           <span></span>
-          <div><small>QINGLAN MOUNTAIN</small><h2>青嵐山門</h2></div>
+          <div><small>GODFATHER GATE</small><h2>教父山門</h2></div>
           <span></span>
         </div>
         <div id="region-grid" class="region-grid"></div>

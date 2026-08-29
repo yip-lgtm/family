@@ -122,7 +122,7 @@ function studioScene(world, part, beat) {
   const acts = {
     1: [
       () => wrapScene(1, '立譜宴', 'INT. 山門大殿 · 夜',
-        `燈火把青嵐門匾照得像一口金棺。四方來客低頭敬酒，沒有人敢問靈石從哪來。${kay.name}立在廊柱後，看${don.name}接過一封染血的拜帖。`,
+        `燈火把教父門匾照得像一口金棺。四方來客低頭敬酒，沒有人敢問靈石從哪來。${kay.name}立在廊柱後，看${don.name}接過一封染血的拜帖。`,
         `${don.name}：今晚是喜事。喜事過了，帳才開始算。`,
         { speaker: don.name, mood: 4, bond: [don.name, kay.name, 6] }),
       () => wrapScene(1, '無法拒絕', 'INT. 密室 · 子時',

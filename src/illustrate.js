@@ -14,7 +14,7 @@ const DB_NAME = 'qinglan-art'
 const STORE = 'frames'
 const MAX_FRAMES = 28
 const STYLE = [
-  'Cinematic still from a dark xianxia family epic: the Godfather Clan on Qinglan Mountain.',
+  'Cinematic still from a dark xianxia family epic at the Godfather Gate, a gold-and-ink mountain sect.',
   'Ink-wash painting with gold leaf, oil-lamp chiaroscuro, restrained Coppola lighting.',
   'Cultivation robes, mountain sect architecture, no modern objects.',
   'Absolutely no text, letters, watermarks, logos, captions, or UI.',
@@ -217,7 +217,7 @@ export function scenePrompt(scene) {
     STYLE,
     `Widescreen 16:9 narrative illustration.`,
     `Beat title in English sense only, do not paint the words: ${scene.title}.`,
-    `Setting: ${scene.slug || 'Qinglan sect hall at night'}.`,
+    `Setting: ${scene.slug || 'Godfather Gate hall at night'}.`,
     `Action: ${scene.narration || ''}`,
     scene.line ? `Mood of the unspoken line: ${scene.line}` : '',
     'Show two or three cultivators in a gold-and-ink interior or mountain night, faces readable, family tension.',
