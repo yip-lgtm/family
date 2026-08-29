@@ -513,7 +513,7 @@ function bump(element: HTMLElement): void {
 function spawnFloatingText(event: MouseEvent, amount: number): void {
   const floating = document.createElement('span')
   floating.className = 'floating-qi'
-  floating.textContent = `+${formatNumber(amount)} 靈氣`
+  floating.textContent = `+${formatNumber(amount)} Qi`
   floating.style.left = `${event.clientX}px`
   floating.style.top = `${event.clientY}px`
   document.body.append(floating)
