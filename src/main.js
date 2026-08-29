@@ -1,112 +1,38 @@
 import './style.css'
 import { createAudio } from './audio.js'
 import { createVisualFx } from './fx.js'
+import {
+  ACTIONS,
+  REGIONS,
+  STAGES,
+  TRAITS,
+  assignAction,
+  bless,
+  bondLine,
+  breakthroughCost,
+  calendarLabel,
+  clickYield,
+  corrupt,
+  createWorld,
+  formatNumber,
+  highestRealmName,
+  living,
+  patriarchBreakthrough,
+  peopleIn,
+  qiRate,
+  recruitCost,
+  recruitMember,
+  selected,
+  simulateMonth,
+  tribulate,
+  triggerOmen,
+} from './world.js'
 
 const audio = createAudio()
 const fx = createVisualFx()
+const world = createWorld()
 
-const TRAITS = [
-  {
-    id: 'prosperity',
-    icon: '囍',
-    name: '多子多福',
-    english: 'Abundant Descendants',
-    description: '招募族人消耗降低 20%',
-    modifier: 'Recruit cost −20%',
-  },
-  {
-    id: 'heaven-root',
-    icon: '靈',
-    name: '天靈根血脈',
-    english: 'Heavenly Spirit Root',
-    description: '每位族人的基礎靈氣產量提升 50%',
-    modifier: 'Member Qi +50%',
-  },
-  {
-    id: 'diligence',
-    icon: '勤',
-    name: '勤能補拙',
-    english: 'Diligence Prevails',
-    description: '閉關修煉獲得雙倍靈氣',
-    modifier: 'Gather Qi ×2',
-  },
-  {
-    id: 'jade-bones',
-    icon: '玉',
-    name: '冰肌玉骨',
-    english: 'Jade-Boned Lineage',
-    description: '全族靈氣產量提升 25%',
-    modifier: 'All Qi +25%',
-  },
-  {
-    id: 'merchant',
-    icon: '寶',
-    name: '奇貨可居',
-    english: 'Spirit Merchant',
-    description: '招募費用增長速度降低 15%',
-    modifier: 'Cost scaling −15%',
-  },
-  {
-    id: 'ancestral',
-    icon: '祖',
-    name: '先祖庇佑',
-    english: 'Ancestor’s Blessing',
-    description: '突發事件的靈氣收益提升 50%',
-    modifier: 'Event rewards +50%',
-  },
-]
-
-const EVENTS = [
-  { type: 'good', title: '仙草現世', text: '家族子弟在後山發現百年靈芝！', qi: 500, detail: '靈氣 +500' },
-  { type: 'good', title: '天作之合', text: '家族喜結良緣，香火愈盛。', members: 2, detail: '族人 +2' },
-  { type: 'good', title: '高人指點', text: '雲遊真人傳下一縷修行心得。', qi: 280, detail: '靈氣 +280' },
-  { type: 'good', title: '靈脈湧動', text: '地底靈脈忽然復甦，滿院清輝。', qi: 800, detail: '靈氣 +800' },
-  { type: 'bad', title: '外敵來襲', text: '敵對家族夜襲山門！', members: -1, detail: '族人 −1' },
-  { type: 'bad', title: '走火入魔', text: '一名族人修行冒進，靈氣四散。', qi: -200, detail: '靈氣 −200' },
-  { type: 'bad', title: '靈田歉收', text: '山中寒潮突至，靈植盡數凋零。', qi: -350, detail: '靈氣 −350' },
-]
-
-const STAGES = [
-  '煉氣初期',
-  '煉氣中期',
-  '煉氣後期',
-  '築基初期',
-  '築基中期',
-  '築基後期',
-  '金丹初期',
-  '金丹中期',
-  '金丹後期',
-  '元嬰初期',
-]
-
-const state = {
-  qi: 680,
-  members: 6,
-  realm: 0,
-  traits: [],
-  logs: [
-    { time: '辰時', text: '青嵐世家於蒼梧山立下道統。', tone: 'gold' },
-    { time: '巳時', text: '靈脈運轉穩定，族人開始吐納。', tone: 'jade' },
-  ],
-  eventCountdown: 0,
-}
-
-const hasTrait = (id) => state.traits.includes(id)
-const clickYield = () => 10 * (hasTrait('diligence') ? 2 : 1)
-const qiRate = () => {
-  const rootBonus = hasTrait('heaven-root') ? 1.5 : 1
-  const familyBonus = hasTrait('jade-bones') ? 1.25 : 1
-  return state.members * rootBonus * familyBonus
-}
-const recruitCost = () => {
-  const scaling = hasTrait('merchant') ? 1.2975 : 1.35
-  const discount = hasTrait('prosperity') ? 0.8 : 1
-  return Math.round(80 * scaling ** (state.members - 1) * discount)
-}
-const breakthroughCost = () => Math.round(500 * 2.15 ** state.realm)
-const formatNumber = (value) => new Intl.NumberFormat('zh-Hant', {
-  maximumFractionDigits: value < 100 ? 1 : 0,
-}).format(value)
+const $ = (sel) => document.querySelector(sel)
 
 document.querySelector('#app').innerHTML = `
   <div class="ambient" aria-hidden="true">
@@ -124,10 +50,18 @@ document.querySelector('#app').innerHTML = `
       <span class="brand-seal">嵐</span>
       <span class="brand-copy">
         <strong>青嵐世家</strong>
-        <small>CULTIVATION FAMILY</small>
+        <small>HEAVEN'S WILL</small>
       </span>
     </a>
+    <div class="fate-chip-row" aria-label="天道總覽">
+      <span class="fate-chip"><small>曆法</small><b id="calendar-label">—</b></span>
+      <span class="fate-chip"><small>氣運</small><b id="karma-value">0</b></span>
+      <span class="fate-chip"><small>人口</small><b id="member-value">0</b></span>
+      <span class="fate-chip"><small>最高境界</small><b id="peak-realm">煉氣初期</b></span>
+    </div>
     <div class="topbar-end">
+      <button type="button" class="time-btn" id="pause-btn">⏸ 暫停</button>
+      <button type="button" class="time-btn" id="speed-btn">×1</button>
       <button
         type="button"
         class="music-toggle"
@@ -137,64 +71,59 @@ document.querySelector('#app').innerHTML = `
       >
         🎹 關注塔菲貓
       </button>
-      <div class="world-state">
-        <span class="pulse-dot"></span>
-        <span>靈脈穩定</span>
-        <i></i>
-        <span>玄元曆 146 年</span>
-      </div>
     </div>
   </header>
 
   <main class="game-shell">
-    <section class="hero-heading">
+    <section class="hero-heading compact-hero">
       <div>
-        <span class="eyebrow">蒼梧山 · 青嵐血脈</span>
-        <h1>一脈承仙途，<em>百世鑄道統</em></h1>
-        <p>引天地之靈氣，興家族之氣運。你的每一次抉擇，都將流傳於後世。</p>
+        <span class="eyebrow">蒼梧山 · 你是天道的影子</span>
+        <h1>靜觀族人自行演化，<em>或降下賜福與天劫</em></h1>
+        <p>每位弟子都有靈根、性格、壽元與私心。他們會自己修煉、結怨、煉丹、闖蕩；你不必當劍修，只要執掌氣運。</p>
       </div>
-      <div class="fortune-mark" aria-label="家族氣運昌盛">
-        <span>家族氣運</span>
-        <strong>昌盛</strong>
+      <div class="fortune-mark" aria-label="家族氣運">
+        <span>天道視角</span>
+        <strong id="fortune-word">觀察</strong>
       </div>
     </section>
 
-    <div class="dashboard-grid">
+    <div class="dashboard-grid sim-grid">
       <aside class="left-column">
         <section class="panel stats-panel">
           <div class="panel-heading">
             <span>
-              <small>FAMILY LEDGER</small>
+              <small>CLAN VAULT</small>
               <h2>家族總覽</h2>
             </span>
-            <span class="live-badge">生生不息</span>
+            <span class="live-badge" id="pulse-badge">演化中</span>
           </div>
-
           <div class="stat-card qi-stat">
             <span class="stat-icon">氣</span>
             <div>
               <small>天地靈氣</small>
               <strong id="qi-value">0</strong>
-              <span><b>↗</b> <span id="qi-rate">0</span> / 秒</span>
+              <span><b>↗</b> <span id="qi-rate">0</span> / 月</span>
             </div>
           </div>
-          <div class="stat-card">
-            <span class="stat-icon member-icon">族</span>
-            <div>
-              <small>家族族人</small>
-              <strong><span id="member-value">0</span><i>位</i></strong>
-              <span>同心修煉，共築仙途</span>
-            </div>
-          </div>
-
           <div class="realm-block">
             <div class="realm-label">
               <span><small>老祖境界</small><strong id="realm-name">煉氣初期</strong></span>
               <span id="realm-progress-label">0 / 0</span>
             </div>
             <div class="progress-track"><span id="realm-progress"></span></div>
-            <p>突破後可覺醒一項家族傳承</p>
+            <p>突破後可覺醒一項家族傳承，福澤所有自主修士</p>
           </div>
+        </section>
+
+        <section class="panel roster-panel">
+          <div class="panel-heading">
+            <span>
+              <small>AVATARS</small>
+              <h2>族人名冊</h2>
+            </span>
+            <span class="live-badge">群像</span>
+          </div>
+          <div id="roster-list" class="roster-list"></div>
         </section>
 
         <section class="panel actions-panel">
@@ -203,7 +132,7 @@ document.querySelector('#app').innerHTML = `
           </div>
           <button id="recruit-button" class="game-button secondary-button" type="button">
             <span class="button-glyph">人</span>
-            <span><strong>招募族人</strong><small>延續香火，壯大家族</small></span>
+            <span><strong>納入弟子</strong><small>隨機靈根與性格入譜</small></span>
             <span class="cost"><b id="recruit-cost">0</b><small>靈氣</small></span>
           </button>
           <button id="breakthrough-button" class="game-button gold-button" type="button">
@@ -214,14 +143,14 @@ document.querySelector('#app').innerHTML = `
         </section>
       </aside>
 
-      <section class="cultivation-stage">
+      <section class="cultivation-stage world-stage">
         <div class="stage-header">
           <span></span>
-          <div><small>SPIRIT NEXUS</small><h2>家族靈樞</h2></div>
+          <div><small>QINGLAN MOUNTAIN</small><h2>青嵐山門</h2></div>
           <span></span>
         </div>
-
-        <div class="nexus-wrap">
+        <div id="region-grid" class="region-grid"></div>
+        <div class="nexus-wrap compact-nexus">
           <div class="orbit orbit-outer"><i></i><i></i><i></i></div>
           <div class="orbit orbit-inner"></div>
           <button id="gather-button" class="qi-orb" type="button" aria-label="閉關修煉，凝聚靈氣">
@@ -229,44 +158,44 @@ document.querySelector('#app').innerHTML = `
             <span class="orb-rune">炁</span>
             <span class="orb-copy"><strong>閉關修煉</strong><small>GATHER QI</small></span>
           </button>
-          <span class="nexus-particle particle-one"></span>
-          <span class="nexus-particle particle-two"></span>
-          <span class="nexus-particle particle-three"></span>
         </div>
-        <p class="gather-message">點擊靈樞凝聚 <strong id="click-yield">+10</strong> 靈氣</p>
-        <span class="meditation-note">「 心若止水，氣自歸元 」</span>
+        <p class="gather-message">點擊靈樞為天道庫藏凝聚 <strong id="click-yield">+10</strong> 靈氣</p>
       </section>
 
       <aside class="right-column">
-        <section class="panel heritage-panel">
+        <section class="panel inspector-panel">
+          <div class="panel-heading">
+            <span>
+              <small>CULTIVATOR</small>
+              <h2>角色面板</h2>
+            </span>
+            <span class="dna-mark">視</span>
+          </div>
+          <div id="inspector" class="inspector"></div>
+        </section>
+
+        <section class="panel heritage-panel compact-heritage">
           <div class="panel-heading">
             <span>
               <small>FAMILY HERITAGE</small>
               <h2>家族傳承</h2>
             </span>
-            <span class="dna-mark">⌘</span>
           </div>
           <div id="trait-list" class="trait-list"></div>
           <div id="empty-traits" class="empty-traits">
             <span class="empty-seal">承</span>
             <strong>傳承尚未覺醒</strong>
-            <p>老祖突破境界時，可從三項家族天賦中擇一，福澤後世。</p>
+            <p>老祖突破時，從三項天賦中擇一。</p>
           </div>
         </section>
 
         <section class="panel log-panel">
           <div class="log-heading">
-            <span><i></i><strong>家族志</strong><small>CLAN CHRONICLE</small></span>
-            <span class="log-live"><i></i> 載錄中</span>
+            <span><i></i><strong>事件流</strong><small>WORLD CHRONICLE</small></span>
+            <span class="log-live"><i></i> 湧現中</span>
           </div>
           <div id="log-list" class="log-list"></div>
-          <div class="scroll-end"><i></i><span>卷</span><i></i></div>
         </section>
-
-        <div class="omen-timer">
-          <span>✦</span>
-          <p><small>天機流轉</small><strong id="event-timer">下一次天象：-- 秒</strong></p>
-        </div>
       </aside>
     </div>
   </main>
@@ -274,7 +203,7 @@ document.querySelector('#app').innerHTML = `
   <footer>
     <span>青嵐家訓</span>
     <p>修身 · 齊家 · 問道 · 長生</p>
-    <span>BGM《關注塔菲貓》· 坂本風</span>
+    <span>規則驅動群像 · 非 LLM</span>
   </footer>
 
   <div id="trait-modal" class="modal-backdrop" aria-hidden="true">
@@ -283,63 +212,98 @@ document.querySelector('#app').innerHTML = `
       <span class="modal-seal">脈</span>
       <small>ANCESTRAL AWAKENING</small>
       <h2 id="trait-modal-title">血脈覺醒</h2>
-      <p>老祖踏入新境，冥冥中三道傳承顯現。<br />擇其一，福澤青嵐後世。</p>
+      <p>老祖踏入新境，三道傳承顯現。<br />擇其一，福澤所有自行演化的族人。</p>
       <div id="trait-choices" class="trait-choices"></div>
       <span class="modal-footnote">此選擇將永久銘刻於族譜</span>
     </div>
   </div>
 `
 
-const elements = {
-  qi: document.querySelector('#qi-value'),
-  qiRate: document.querySelector('#qi-rate'),
-  members: document.querySelector('#member-value'),
-  realm: document.querySelector('#realm-name'),
-  realmProgress: document.querySelector('#realm-progress'),
-  realmProgressLabel: document.querySelector('#realm-progress-label'),
-  recruitCost: document.querySelector('#recruit-cost'),
-  breakthroughCost: document.querySelector('#breakthrough-cost'),
-  breakthroughHint: document.querySelector('#breakthrough-hint'),
-  clickYield: document.querySelector('#click-yield'),
-  recruitButton: document.querySelector('#recruit-button'),
-  breakthroughButton: document.querySelector('#breakthrough-button'),
-  gatherButton: document.querySelector('#gather-button'),
-  traitList: document.querySelector('#trait-list'),
-  emptyTraits: document.querySelector('#empty-traits'),
-  logList: document.querySelector('#log-list'),
-  modal: document.querySelector('#trait-modal'),
-  choices: document.querySelector('#trait-choices'),
-  toastRegion: document.querySelector('#toast-region'),
-  eventTimer: document.querySelector('#event-timer'),
-  musicToggle: document.querySelector('#music-toggle'),
+const els = {
+  qi: $('#qi-value'),
+  qiRate: $('#qi-rate'),
+  members: $('#member-value'),
+  realm: $('#realm-name'),
+  realmProgress: $('#realm-progress'),
+  realmProgressLabel: $('#realm-progress-label'),
+  recruitCost: $('#recruit-cost'),
+  breakthroughCost: $('#breakthrough-cost'),
+  breakthroughHint: $('#breakthrough-hint'),
+  clickYield: $('#click-yield'),
+  recruitButton: $('#recruit-button'),
+  breakthroughButton: $('#breakthrough-button'),
+  gatherButton: $('#gather-button'),
+  traitList: $('#trait-list'),
+  emptyTraits: $('#empty-traits'),
+  logList: $('#log-list'),
+  modal: $('#trait-modal'),
+  choices: $('#trait-choices'),
+  toastRegion: $('#toast-region'),
+  musicToggle: $('#music-toggle'),
+  calendar: $('#calendar-label'),
+  karma: $('#karma-value'),
+  peak: $('#peak-realm'),
+  roster: $('#roster-list'),
+  regions: $('#region-grid'),
+  inspector: $('#inspector'),
+  pauseBtn: $('#pause-btn'),
+  speedBtn: $('#speed-btn'),
+  pulse: $('#pulse-badge'),
+  fortune: $('#fortune-word'),
 }
 
-function timeLabel() {
-  return new Intl.DateTimeFormat('zh-Hant', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date())
-}
+const logs = [
+  { time: calendarLabel(world), text: '青嵐世家於蒼梧山立下道統。天道臨世，開始觀察族人自行演化。', tone: 'gold' },
+  { time: calendarLabel(world), text: '沈清梧入藏經閣，葉疏影在山門等人，白無塵已往後山。', tone: 'jade' },
+]
 
 function addLog(text, tone = '') {
-  state.logs.unshift({ time: timeLabel(), text, tone })
-  state.logs = state.logs.slice(0, 10)
+  logs.unshift({ time: calendarLabel(world), text, tone })
+  logs.splice(24)
   renderLog()
 }
 
 function renderLog() {
-  elements.logList.innerHTML = state.logs.map((item) => `
+  els.logList.innerHTML = logs.map((item) => `
     <div class="log-entry ${item.tone}">
-      <time>${item.time}</time>
+      <time>${item.time.replace('玄元曆 ', '')}</time>
       <span>${item.text}</span>
     </div>
   `).join('')
 }
 
+function showToast(event) {
+  const toast = document.createElement('div')
+  toast.className = `event-toast ${event.type}`
+  toast.innerHTML = `
+    <span class="toast-icon">${event.type === 'bad' ? '厄' : event.type === 'heritage' ? '脈' : '吉'}</span>
+    <div>
+      <small>${event.type === 'bad' ? 'TRIBULATION' : event.type === 'heritage' ? 'BREAKTHROUGH' : 'OMEN'}</small>
+      <strong>${event.title}</strong>
+      <p>${event.text} <b>${event.detail || ''}</b></p>
+    </div>
+    <span class="toast-timer"></span>
+  `
+  els.toastRegion.append(toast)
+  window.setTimeout(() => toast.classList.add('leaving'), 3000)
+  window.setTimeout(() => toast.remove(), 3450)
+}
+
+function applyReports(reports) {
+  for (const report of reports) {
+    if (report.text) addLog(report.text, report.tone)
+    if (report.toast) {
+      showToast(report.toast)
+      audio.playEvent(report.toast.type !== 'bad')
+    } else if (report.sfx === true) audio.playEvent(true)
+    else if (report.sfx === false) audio.playEvent(false)
+    if (report.flash) fx.flashScreen()
+  }
+}
+
 function renderTraits() {
-  elements.emptyTraits.hidden = state.traits.length > 0
-  elements.traitList.innerHTML = state.traits.map((traitId) => {
+  els.emptyTraits.hidden = world.traits.length > 0
+  els.traitList.innerHTML = world.traits.map((traitId) => {
     const trait = TRAITS.find((item) => item.id === traitId)
     return `
       <div class="active-trait">
@@ -350,23 +314,153 @@ function renderTraits() {
   }).join('')
 }
 
-function render() {
-  const cost = breakthroughCost()
-  const atMaxRealm = state.realm >= STAGES.length - 1
-  elements.qi.textContent = formatNumber(state.qi)
-  elements.qiRate.textContent = formatNumber(qiRate())
-  elements.members.textContent = formatNumber(state.members)
-  elements.realm.textContent = STAGES[Math.min(state.realm, STAGES.length - 1)]
-  elements.realmProgressLabel.textContent = atMaxRealm
-    ? '道心圓滿'
-    : `${formatNumber(Math.min(state.qi, cost))} / ${formatNumber(cost)}`
-  elements.realmProgress.style.width = atMaxRealm ? '100%' : `${Math.min((state.qi / cost) * 100, 100)}%`
-  elements.recruitCost.textContent = formatNumber(recruitCost())
-  elements.breakthroughCost.textContent = atMaxRealm ? '—' : formatNumber(cost)
-  elements.breakthroughHint.textContent = atMaxRealm ? '此界已臻圓滿' : `衝擊 ${STAGES[state.realm + 1]}`
-  elements.clickYield.textContent = `+${formatNumber(clickYield())}`
-  elements.recruitButton.disabled = state.qi < recruitCost()
-  elements.breakthroughButton.disabled = atMaxRealm || state.qi < cost
+function renderRoster() {
+  els.roster.innerHTML = living(world).map((person) => `
+    <button type="button" class="roster-card ${person.id === world.selectedId ? 'is-selected' : ''}" data-id="${person.id}">
+      <span class="roster-seal" style="border-color:${person.root.hue};color:${person.root.hue}">${person.name.slice(-1)}</span>
+      <span>
+        <strong>${person.name}${person.role === 'patriarch' ? ' · 老祖' : ''}</strong>
+        <small>${STAGES[person.realm]} · ${ACTIONS[person.action].label}</small>
+      </span>
+      <i>${person.hp}%</i>
+    </button>
+  `).join('')
+}
+
+function renderMap() {
+  els.regions.innerHTML = REGIONS.map((region) => {
+    const here = peopleIn(world, region.id)
+    const tokens = here.map((p) => `
+      <button type="button" class="region-token ${p.id === world.selectedId ? 'is-on' : ''}" data-id="${p.id}" title="${p.name}">
+        ${p.name.slice(-1)}
+      </button>
+    `).join('')
+    return `
+      <article class="region-cell">
+        <header><strong>${region.name}</strong><small>${region.hint}</small></header>
+        <div class="token-row">${tokens || '<span class="token-empty">空</span>'}</div>
+      </article>
+    `
+  }).join('')
+}
+
+function renderInspector() {
+  const person = selected(world)
+  if (!person) {
+    els.inspector.innerHTML = '<p class="empty-inspect">山門已空。</p>'
+    return
+  }
+  const memories = person.memory.length
+    ? person.memory.map((line) => `<li>${line}</li>`).join('')
+    : '<li>尚無記憶殘片</li>'
+  const arts = person.artifacts.length ? person.artifacts.join('、') : '無'
+  els.inspector.innerHTML = `
+    <div class="inspect-name">
+      <span class="inspect-seal">${person.name.slice(-1)}</span>
+      <div>
+        <strong>${person.name}</strong>
+        <small>${person.nickname || '尚無江湖綽號'} · ${person.role === 'patriarch' ? '老祖' : person.role === 'elder' ? '長老' : '弟子'}</small>
+      </div>
+    </div>
+    <div class="inspect-tags">
+      <span>${person.root.name}</span>
+      <span>${person.nature.name}</span>
+      <span>《${person.technique}》</span>
+    </div>
+    <div class="inspect-grid">
+      <div><small>境界</small><b>${STAGES[person.realm]}</b></div>
+      <div><small>年齡 / 壽元</small><b>${person.age} / ${person.lifespan}</b></div>
+      <div><small>傷勢</small><b>${person.hp}%</b></div>
+      <div><small>心情</small><b>${person.mood > 20 ? '暢快' : person.mood < -15 ? '陰鬱' : '平淡'}</b></div>
+      <div><small>丹藥</small><b>${person.pills}</b></div>
+      <div><small>人際</small><b>${bondLine(person, world)}</b></div>
+    </div>
+    <p class="thought-box">「${person.thought}」</p>
+    <p class="inspect-gear">法寶：${arts}</p>
+    <ul class="memory-list">${memories}</ul>
+    <div class="heaven-actions">
+      <small>天道干預 · 消耗氣運</small>
+      <div class="heaven-row">
+        <button type="button" data-heaven="bless">賜福 · 8</button>
+        <button type="button" data-heaven="tribulate">天劫 · 12</button>
+        <button type="button" data-heaven="corrupt">心魔 · 10</button>
+      </div>
+      <div class="heaven-row">
+        <button type="button" data-assign="cultivate">令其修煉 · 3</button>
+        <button type="button" data-assign="adventure">令其歷練 · 3</button>
+        <button type="button" data-assign="alchemy">令其煉丹 · 3</button>
+      </div>
+    </div>
+  `
+}
+
+function renderHud() {
+  const cost = breakthroughCost(world)
+  const atMax = world.patriarchRealm >= STAGES.length - 1
+  els.qi.textContent = formatNumber(world.qi)
+  els.qiRate.textContent = formatNumber(qiRate(world))
+  els.members.textContent = `${living(world).length}`
+  els.realm.textContent = STAGES[world.patriarchRealm]
+  els.realmProgressLabel.textContent = atMax ? '道心圓滿' : `${formatNumber(Math.min(world.qi, cost))} / ${formatNumber(cost)}`
+  els.realmProgress.style.width = atMax ? '100%' : `${Math.min((world.qi / cost) * 100, 100)}%`
+  els.recruitCost.textContent = formatNumber(recruitCost(world))
+  els.breakthroughCost.textContent = atMax ? '—' : formatNumber(cost)
+  els.breakthroughHint.textContent = atMax ? '此界已臻圓滿' : `衝擊 ${STAGES[world.patriarchRealm + 1]}`
+  els.clickYield.textContent = `+${formatNumber(clickYield(world))}`
+  els.recruitButton.disabled = world.qi < recruitCost(world)
+  els.breakthroughButton.disabled = atMax || world.qi < cost
+  els.calendar.textContent = calendarLabel(world)
+  els.karma.textContent = formatNumber(world.karma)
+  els.peak.textContent = highestRealmName(world)
+  els.pulse.textContent = world.paused ? '時停' : '演化中'
+  els.fortune.textContent = world.paused ? '時停' : world.karma > 40 ? '昌盛' : world.karma < 12 ? '式微' : '觀察'
+  els.pauseBtn.textContent = world.paused ? '▶ 繼續' : '⏸ 暫停'
+  els.speedBtn.textContent = `×${world.speed}`
+}
+
+function render(opts = {}) {
+  const inspect = opts.inspect ?? true
+  renderHud()
+  renderRoster()
+  renderMap()
+  if (inspect) renderInspector()
+}
+
+function pickTraitChoices() {
+  const available = TRAITS.filter((trait) => !world.traits.includes(trait.id))
+  const pool = available.length >= 3 ? available : TRAITS
+  return [...pool].sort(() => Math.random() - 0.5).slice(0, 3)
+}
+
+function openTraitModal() {
+  const choices = pickTraitChoices()
+  els.choices.innerHTML = choices.map((trait) => `
+    <button class="trait-choice" type="button" data-trait="${trait.id}">
+      <span class="choice-icon">${trait.icon}</span>
+      <small>${trait.english}</small>
+      <strong>${trait.name}</strong>
+      <p>${trait.description}</p>
+      <i>${trait.modifier}</i>
+      <b>選擇此傳承 <span>→</span></b>
+    </button>
+  `).join('')
+  els.modal.classList.add('visible')
+  els.modal.setAttribute('aria-hidden', 'false')
+  document.body.classList.add('modal-open')
+  els.choices.querySelector('button')?.focus()
+}
+
+function chooseTrait(traitId) {
+  const trait = TRAITS.find((item) => item.id === traitId)
+  if (!trait) return
+  if (!world.traits.includes(traitId)) world.traits.push(traitId)
+  els.modal.classList.remove('visible')
+  els.modal.setAttribute('aria-hidden', 'true')
+  document.body.classList.remove('modal-open')
+  addLog(`血脈覺醒「${trait.name}」，${trait.description}。`, 'gold')
+  showToast({ type: 'heritage', title: '家族傳承已覺醒', text: trait.name, detail: trait.modifier })
+  renderTraits()
+  render()
 }
 
 function floatingQi(x, y, amount) {
@@ -395,165 +489,140 @@ function pressEffect(button) {
   window.setTimeout(() => button.classList.remove('is-pressed'), 260)
 }
 
-function pickTraitChoices() {
-  const available = TRAITS.filter((trait) => !state.traits.includes(trait.id))
-  const pool = available.length >= 3 ? available : TRAITS
-  return [...pool].sort(() => Math.random() - 0.5).slice(0, 3)
-}
-
-function openTraitModal() {
-  const choices = pickTraitChoices()
-  elements.choices.innerHTML = choices.map((trait) => `
-    <button class="trait-choice" type="button" data-trait="${trait.id}">
-      <span class="choice-icon">${trait.icon}</span>
-      <small>${trait.english}</small>
-      <strong>${trait.name}</strong>
-      <p>${trait.description}</p>
-      <i>${trait.modifier}</i>
-      <b>選擇此傳承 <span>→</span></b>
-    </button>
-  `).join('')
-  elements.modal.classList.add('visible')
-  elements.modal.setAttribute('aria-hidden', 'false')
-  document.body.classList.add('modal-open')
-  elements.choices.querySelector('button')?.focus()
-}
-
-function chooseTrait(traitId) {
-  const trait = TRAITS.find((item) => item.id === traitId)
-  if (!trait) return
-  if (!state.traits.includes(traitId)) state.traits.push(traitId)
-  elements.modal.classList.remove('visible')
-  elements.modal.setAttribute('aria-hidden', 'true')
-  document.body.classList.remove('modal-open')
-  addLog(`血脈覺醒「${trait.name}」，${trait.description}。`, 'gold')
-  showToast({
-    type: 'heritage',
-    title: '家族傳承已覺醒',
-    text: trait.name,
-    detail: trait.modifier,
-  })
-  renderTraits()
+function selectPerson(id) {
+  if (!id) return
+  world.selectedId = id
   render()
 }
 
-function showToast(event) {
-  const toast = document.createElement('div')
-  toast.className = `event-toast ${event.type}`
-  toast.innerHTML = `
-    <span class="toast-icon">${event.type === 'bad' ? '厄' : event.type === 'heritage' ? '脈' : '吉'}</span>
-    <div>
-      <small>${event.type === 'bad' ? 'UNEXPECTED TRIBULATION' : 'AUSPICIOUS OMEN'}</small>
-      <strong>${event.title}</strong>
-      <p>${event.text} <b>${event.detail}</b></p>
-    </div>
-    <span class="toast-timer"></span>
-  `
-  elements.toastRegion.append(toast)
-  window.setTimeout(() => toast.classList.add('leaving'), 3000)
-  window.setTimeout(() => toast.remove(), 3450)
-}
+els.roster.addEventListener('click', (event) => {
+  const card = event.target.closest('[data-id]')
+  if (card) selectPerson(card.dataset.id)
+})
 
-function triggerRandomEvent(force = false) {
-  if (!force && Math.random() > 0.5) {
-    addLog('天機掠過，一夜無事，族人修行如常。')
+els.regions.addEventListener('click', (event) => {
+  const token = event.target.closest('[data-id]')
+  if (token) selectPerson(token.dataset.id)
+})
+
+els.inspector.addEventListener('click', (event) => {
+  const heaven = event.target.closest('[data-heaven]')
+  const assign = event.target.closest('[data-assign]')
+  const id = world.selectedId
+  if (heaven) {
+    const kind = heaven.dataset.heaven
+    const result = kind === 'bless' ? bless(world, id)
+      : kind === 'tribulate' ? tribulate(world, id)
+        : corrupt(world, id)
+    if (!result.ok) {
+      addLog(result.reason || '氣運不足，天道暫時不可妄動。', 'danger')
+      render()
+      return
+    }
+    audio.playRise()
+    if (kind === 'tribulate') applyReports(result.reports || [])
+    addLog(result.text, 'gold')
+    showToast({
+      type: kind === 'tribulate' ? 'heritage' : kind === 'corrupt' ? 'bad' : 'good',
+      title: kind === 'bless' ? '天道賜福' : kind === 'tribulate' ? '天劫降臨' : '心魔翻湧',
+      text: selected(world)?.name || '',
+      detail: result.text,
+    })
+    render()
     return
   }
-  const event = EVENTS[Math.floor(Math.random() * EVENTS.length)]
-  const eventQiBonus = hasTrait('ancestral') && event.qi > 0 ? 1.5 : 1
-  if (event.qi) state.qi = Math.max(0, state.qi + event.qi * eventQiBonus)
-  if (event.members) state.members = Math.max(1, state.members + event.members)
-  const detail = event.qi > 0 && eventQiBonus > 1
-    ? `靈氣 +${formatNumber(event.qi * eventQiBonus)}`
-    : event.detail
-  audio.playEvent(event.type !== 'bad')
-  showToast({ ...event, detail })
-  addLog(`${event.title}：${event.text}（${detail}）`, event.type === 'bad' ? 'danger' : 'jade')
-  render()
-}
+  if (assign) {
+    const result = assignAction(world, id, assign.dataset.assign)
+    if (!result.ok) addLog(result.reason || '氣運不足。', 'danger')
+    else {
+      audio.playQing()
+      addLog(result.text, 'jade')
+    }
+    render()
+  }
+})
 
-function scheduleEvent() {
-  state.eventCountdown = Math.floor(15 + Math.random() * 16)
-  elements.eventTimer.textContent = `下一次天象：${state.eventCountdown} 秒`
-}
-
-elements.gatherButton.addEventListener('click', (event) => {
-  const amount = clickYield()
-  state.qi += amount
+els.gatherButton.addEventListener('click', (event) => {
+  const amount = clickYield(world)
+  world.qi += amount
   const { x, y } = pointerPoint(event)
   floatingQi(x, y, amount)
   fx.burst(x, y)
   audio.playQing()
-  pressEffect(elements.gatherButton)
+  pressEffect(els.gatherButton)
+  renderHud()
+})
+
+els.recruitButton.addEventListener('click', () => {
+  const result = recruitMember(world)
+  if (!result.ok) return
+  audio.playRise()
+  pressEffect(els.recruitButton)
+  addLog(`${result.person.name}拜入青嵐，靈根為${result.person.root.name}，性${result.person.nature.name}。`, 'jade')
   render()
 })
 
-elements.recruitButton.addEventListener('click', () => {
-  const cost = recruitCost()
-  if (state.qi < cost) return
-  state.qi -= cost
-  state.members += 1
+els.breakthroughButton.addEventListener('click', () => {
+  const result = patriarchBreakthrough(world)
+  if (!result.ok) return
   audio.playRise()
-  pressEffect(elements.recruitButton)
-  addLog(`一名懷有靈根的後輩歸入族譜。族人增至 ${state.members} 位。`, 'jade')
-  render()
-})
-
-elements.breakthroughButton.addEventListener('click', () => {
-  const cost = breakthroughCost()
-  if (state.qi < cost || state.realm >= STAGES.length - 1) return
-  state.qi -= cost
-  state.realm += 1
-  const nextRealm = STAGES[state.realm]
-  audio.playRise()
-  if (/金丹|元嬰/.test(nextRealm)) {
-    fx.flashScreen()
-  }
-  pressEffect(elements.breakthroughButton)
-  addLog(`老祖破境成功，踏入「${nextRealm}」！`, 'gold')
+  if (result.flash) fx.flashScreen()
+  pressEffect(els.breakthroughButton)
+  addLog(`老祖破境成功，踏入「${result.stage}」！`, 'gold')
   render()
   window.setTimeout(openTraitModal, 350)
 })
 
-document.addEventListener('pointerdown', () => {
-  audio.unlock()
-}, { once: true })
-
-elements.musicToggle.addEventListener('click', async () => {
-  const on = await audio.setMusic(!audio.isMusicOn())
-  elements.musicToggle.setAttribute('aria-pressed', String(on))
-  elements.musicToggle.classList.toggle('is-on', on)
-  elements.musicToggle.textContent = on ? '🎹 塔菲貓播放中' : '🔇 關注塔菲貓'
-})
-
-elements.choices.addEventListener('click', (event) => {
+els.choices.addEventListener('click', (event) => {
   const choice = event.target.closest('[data-trait]')
   if (choice) chooseTrait(choice.dataset.trait)
 })
 
-window.setInterval(() => {
-  state.qi += qiRate() / 4
-  render()
-}, 250)
+els.pauseBtn.addEventListener('click', () => {
+  world.paused = !world.paused
+  renderHud()
+})
 
-window.setInterval(() => {
-  state.eventCountdown -= 1
-  if (state.eventCountdown <= 0) {
-    triggerRandomEvent()
-    scheduleEvent()
-  } else {
-    elements.eventTimer.textContent = `下一次天象：${state.eventCountdown} 秒`
-  }
-}, 1000)
+els.speedBtn.addEventListener('click', () => {
+  world.speed = world.speed === 1 ? 3 : world.speed === 3 ? 8 : 1
+  restartClock()
+  renderHud()
+})
 
-// Public verification hook; gameplay still uses the full random event cadence.
-window.__cultivationFamily = { triggerRandomEvent: () => triggerRandomEvent(true), state }
+els.musicToggle.addEventListener('click', async () => {
+  const on = await audio.setMusic(!audio.isMusicOn())
+  els.musicToggle.setAttribute('aria-pressed', String(on))
+  els.musicToggle.classList.toggle('is-on', on)
+  els.musicToggle.textContent = on ? '🎹 塔菲貓播放中' : '🔇 關注塔菲貓'
+})
 
-document.addEventListener('pointerdown', () => {
-  audio.unlock()
-}, { once: true })
+document.addEventListener('pointerdown', () => audio.unlock(), { once: true })
+
+let clock = 0
+function restartClock() {
+  window.clearInterval(clock)
+  clock = window.setInterval(() => {
+    const reports = simulateMonth(world)
+    applyReports(reports)
+    render({ inspect: !els.inspector.matches(':hover') })
+  }, Math.round(1600 / world.speed))
+}
+
+window.__cultivationFamily = {
+  triggerRandomEvent: () => {
+    const reports = triggerOmen(world, true)
+    applyReports(reports)
+    render()
+  },
+  state: world,
+  tick: () => {
+    const reports = simulateMonth(world)
+    applyReports(reports)
+    render()
+  },
+}
 
 renderLog()
 renderTraits()
 render()
-scheduleEvent()
+restartClock()
