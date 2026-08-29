@@ -67,9 +67,9 @@ document.querySelector('#app').innerHTML = `
         class="music-toggle"
         id="music-toggle"
         aria-pressed="false"
-        title="坂本龍一風格原創鋼琴曲《關注塔菲貓》。點擊後播放。"
+        title="播放 Bilibili《關注塔菲喵》循環歌單（絕世雙萌／永雛塔菲の小曲）"
       >
-        🎹 關注塔菲貓
+        🐱 關注塔菲喵
       </button>
     </div>
   </header>
@@ -203,7 +203,7 @@ document.querySelector('#app').innerHTML = `
   <footer>
     <span>青嵐家訓</span>
     <p>修身 · 齊家 · 問道 · 長生</p>
-    <span>規則驅動群像 · 非 LLM</span>
+    <span><a class="footer-bgm" href="https://www.bilibili.com/video/BV1kNEP6cEmu" target="_blank" rel="noreferrer">BGM 關注塔菲喵</a></span>
   </footer>
 
   <div id="trait-modal" class="modal-backdrop" aria-hidden="true">
@@ -593,7 +593,7 @@ els.musicToggle.addEventListener('click', async () => {
   const on = await audio.setMusic(!audio.isMusicOn())
   els.musicToggle.setAttribute('aria-pressed', String(on))
   els.musicToggle.classList.toggle('is-on', on)
-  els.musicToggle.textContent = on ? '🎹 塔菲貓播放中' : '🔇 關注塔菲貓'
+  els.musicToggle.textContent = on ? '🐱 塔菲喵播放中' : '🔇 關注塔菲喵'
 })
 
 document.addEventListener('pointerdown', () => audio.unlock(), { once: true })

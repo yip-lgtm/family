@@ -257,6 +257,52 @@ a:focus-visible {
   box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
 }
 
+.bgm-dock {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 40;
+  width: min(320px, calc(100vw - 24px));
+  border: 1px solid rgba(215, 174, 91, 0.4);
+  background: rgba(6, 12, 11, 0.96);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.12);
+  transform: translateY(110%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.bgm-dock.is-on {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.bgm-dock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.bgm-dock-bar a {
+  color: var(--gold-bright);
+  text-decoration: none;
+  text-shadow: 0 0 10px #d4af37;
+}
+
+.bgm-dock iframe {
+  display: block;
+  width: 100%;
+  height: 180px;
+  border: 0;
+  background: #000;
+}
+
 .world-state {
   display: flex;
   align-items: center;
@@ -1287,6 +1333,11 @@ footer p {
   color: #766640;
 }
 
+footer a {
+  color: #c4a15a;
+  text-decoration: none;
+}
+
 .floating-qi {
   position: fixed;
   z-index: 9999;
@@ -2080,6 +2131,10 @@ footer p {
 
   footer span:last-child {
     display: none;
+  }
+
+  .bgm-dock iframe {
+    height: 148px;
   }
 
   .trait-modal {

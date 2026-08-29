@@ -5,9 +5,9 @@ lineage. Gather spiritual Qi, recruit family members, break through realms,
 inherit bloodline traits, and respond to random family events.
 
 The interface uses gold paifang frames, a Canvas spirit-mote particle field,
-and Web Audio oscillators for an original Sakamoto-inspired piano loop
-《關注塔菲貓》, plus click, breakthrough, and event sound effects.
-No external images or audio files.
+and Web Audio for click / breakthrough / event cues. Background music is the
+Bilibili loop playlist [關注塔菲喵 / 絕世雙萌の小曲 / 永雛塔菲の小曲](https://www.bilibili.com/video/BV1kNEP6cEmu)
+embedded via the official player (not downloaded or rehosted).
 
 Gameplay is inspired by Cultivation World Simulator: you watch a living clan
 of rule-driven cultivators (spirit roots, temperament, lifespan, techniques,
@@ -24,7 +24,7 @@ Live site: https://yip-lgtm.github.io/family/
 - **納入弟子** — spend Qi to add a cultivator with random root and nature.
 - **老祖突破** — advance the patriarch and choose a permanent family trait.
 - **湧現事件** — omens plus interpersonal drama from the simulation itself.
-- **關注塔菲貓** — start the Sakamoto-style piano BGM on click.
+- **關注塔菲喵** — play the Bilibili loop playlist as BGM (click to start).
 
 ## Run locally
 
