@@ -84,7 +84,8 @@ export function createAudio() {
     dock.innerHTML = `
       <div class="bgm-dock-bar">
         <span>BGM</span>
-        <a href="${TAFFY_PAGE}" target="_blank" rel="noreferrer">關注塔菲喵 · 循環歌單</a>
+        <a href="${TAFFY_PAGE}" target="_blank" rel="noreferrer">關注塔菲喵</a>
+        <button type="button" class="bgm-size-btn" aria-label="縮小畫面">縮小</button>
       </div>
     `
     frame = document.createElement('iframe')
@@ -93,8 +94,11 @@ export function createAudio() {
     frame.referrerPolicy = 'no-referrer-when-downgrade'
     frame.setAttribute('scrolling', 'no')
     frame.setAttribute('frameborder', '0')
-    frame.setAttribute('allowfullscreen', 'true')
     dock.append(frame)
+    dock.querySelector('.bgm-size-btn').addEventListener('click', () => {
+      const compact = dock.classList.toggle('is-compact')
+      dock.querySelector('.bgm-size-btn').textContent = compact ? '畫面' : '縮小'
+    })
     document.body.append(dock)
   }
 
