@@ -28,6 +28,7 @@ import {
   triggerOmen,
 } from './world.js'
 import { PARTS, createDirector, loadLlmConfig, saveLlmConfig, DEFAULT_MODEL, OPENROUTER_BASE, llmReady } from './screenplay.js'
+import { DEFAULT_IMAGE_MODEL, createIllustrator, imageReady } from './illustrate.js'
 
 const audio = createAudio()
 const fx = createVisualFx()
@@ -81,7 +82,7 @@ document.querySelector('#app').innerHTML = `
       <div>
         <span class="eyebrow">蒼梧山 · 教父三部曲連載</span>
         <h1>家族史詩自動開拍，<em>權力、血債與輓歌</em></h1>
-        <p>編劇按《教父》三部曲推進：立譜報應、兄弟反目、飛升輓歌。有模型就由 LLM 持續寫場；沒有則由劇組代班，鏡頭不停。</p>
+        <p>編劇按《教父》三部曲推進：立譜報應、兄弟反目、飛升輓歌。有 OpenRouter Key 就由模型寫場，並自動生成場次插畫與人物畫像；沒有則劇組代班，金漆牌坊照常開拍。</p>
       </div>
       <div class="fortune-mark" aria-label="家族氣運">
         <span>天道視角</span>
@@ -239,11 +240,11 @@ document.querySelector('#app').innerHTML = `
   <div id="llm-modal" class="modal-backdrop" aria-hidden="true">
     <div class="trait-modal llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-modal-title">
       <small>SCREENWRITER</small>
-      <h2 id="llm-modal-title">OpenRouter 免費模型</h2>
-      <p>預填 <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">OpenRouter</a> 接口與免費路由 <code>openrouter/free</code>。到 Keys 頁複製 <code>sk-or-...</code> 貼上即可連載。金鑰只存在你的瀏覽器。沒有金鑰則劇組代班，風格同樣跟《教父》三部曲走。</p>
+      <h2 id="llm-modal-title">OpenRouter 模型與插畫</h2>
+      <p>預填 <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">OpenRouter</a> 接口。貼上 <code>sk-or-...</code> 後：編劇用免費文字路由連載，畫師用圖像模型自動出插畫。金鑰只存在你的瀏覽器。沒有金鑰則劇組代班，畫面維持金漆牌坊。</p>
       <form id="llm-form" class="llm-form">
         <label>接口 Base URL<input id="llm-base" value="https://openrouter.ai/api/v1" placeholder="https://openrouter.ai/api/v1" /></label>
-        <label>免費模型
+        <label>文字模型
           <input id="llm-model" list="llm-free-models" value="openrouter/free" placeholder="openrouter/free" />
           <datalist id="llm-free-models">
             <option value="openrouter/free">openrouter/free 自動揀免費模型</option>
@@ -253,8 +254,19 @@ document.querySelector('#app').innerHTML = `
             <option value="nvidia/nemotron-3-super-120b-a12b:free"></option>
           </datalist>
         </label>
+        <label>插畫模型
+          <input id="llm-image-model" list="llm-image-models" value="google/gemini-2.5-flash-image" placeholder="google/gemini-2.5-flash-image" />
+          <datalist id="llm-image-models">
+            <option value="google/gemini-2.5-flash-image">Nano Banana · 約數美分／張</option>
+            <option value="google/gemini-3.1-flash-image-preview"></option>
+            <option value="black-forest-labs/flux.2-flex"></option>
+            <option value="openai/gpt-5-image-mini"></option>
+            <option value="bytedance-seed/seedream-4.5"></option>
+          </datalist>
+        </label>
         <label>OpenRouter API Key<input id="llm-key" type="password" placeholder="sk-or-v1-… 必填" autocomplete="off" /></label>
-        <label class="llm-check"><input id="llm-enabled" type="checkbox" checked /> 允許呼叫 LLM</label>
+        <label class="llm-check"><input id="llm-enabled" type="checkbox" checked /> 允許呼叫 LLM 寫場</label>
+        <label class="llm-check"><input id="llm-illustrate" type="checkbox" checked /> 有 Key 時自動生成插畫（場次 16:9、人物 3:4）</label>
         <div class="heaven-row">
           <button type="submit" class="time-btn">儲存並試寫一場</button>
           <button type="button" class="time-btn" id="llm-cancel">關閉</button>
@@ -308,8 +320,14 @@ const els = {
   llmModel: $('#llm-model'),
   llmKey: $('#llm-key'),
   llmEnabled: $('#llm-enabled'),
+  llmIllustrate: $('#llm-illustrate'),
+  llmImageModel: $('#llm-image-model'),
   llmCancel: $('#llm-cancel'),
 }
+
+const art = createIllustrator({
+  onUpdate: () => render({ inspect: !els.inspector.matches(':hover') }),
+})
 
 const logs = [
   { time: calendarLabel(world), text: '青嵐世家於蒼梧山立下道統。天道臨世，開始觀察族人自行演化。', tone: 'gold' },
@@ -381,10 +399,33 @@ function renderTraits() {
   }).join('')
 }
 
+function sealMarkup(person, className) {
+  if (person.artUrl) {
+    return `<img class="${className} has-art" src="${person.artUrl}" alt="" />`
+  }
+  if (person.artStatus === 'pending' && imageReady()) {
+    return `<span class="${className} art-pending" aria-hidden="true"></span>`
+  }
+  return `<span class="${className}" style="border-color:${person.root.hue};color:${person.root.hue}">${person.name.slice(-1)}</span>`
+}
+
+function sceneArtMarkup(scene) {
+  if (scene.artUrl) {
+    return `<img class="scene-art" src="${scene.artUrl}" alt="${escapeHtml(scene.title)}" />`
+  }
+  if (scene.artStatus === 'pending') {
+    return `<div class="scene-art art-pending" role="img" aria-label="插畫生成中"></div>`
+  }
+  if (scene.artStatus === 'error') {
+    return `<button type="button" class="scene-art art-retry" data-retry-art="${escapeHtml(scene.id || '')}">插畫未成 · 點此重試</button>`
+  }
+  return ''
+}
+
 function renderRoster() {
   els.roster.innerHTML = living(world).map((person) => `
     <button type="button" class="roster-card ${person.id === world.selectedId ? 'is-selected' : ''}" data-id="${person.id}">
-      <span class="roster-seal" style="border-color:${person.root.hue};color:${person.root.hue}">${person.name.slice(-1)}</span>
+      ${sealMarkup(person, 'roster-seal')}
       <span>
         <strong>${person.name}${person.role === 'patriarch' ? ' · 老祖' : ''}</strong>
         <small>${STAGES[person.realm]} · ${ACTIONS[person.action].label}</small>
@@ -421,9 +462,14 @@ function renderInspector() {
     ? person.memory.map((line) => `<li>${line}</li>`).join('')
     : '<li>尚無記憶殘片</li>'
   const arts = person.artifacts.length ? person.artifacts.join('、') : '無'
+  const portrait = person.artUrl
+    ? `<img class="inspect-portrait" src="${person.artUrl}" alt="${escapeHtml(person.name)}" />`
+    : person.artStatus === 'pending' && imageReady()
+      ? '<span class="inspect-portrait art-pending" aria-hidden="true"></span>'
+      : `<span class="inspect-seal">${person.name.slice(-1)}</span>`
   els.inspector.innerHTML = `
     <div class="inspect-name">
-      <span class="inspect-seal">${person.name.slice(-1)}</span>
+      ${portrait}
       <div>
         <strong>${person.name}</strong>
         <small>${person.nickname || '尚無江湖綽號'} · ${person.role === 'patriarch' ? '老祖' : person.role === 'elder' ? '長老' : '弟子'}</small>
@@ -492,16 +538,19 @@ function renderScreenplay() {
   els.partTheme.textContent = part.theme
   els.writerBadge.textContent = director.state.busy
     ? '執筆中…'
-    : director.state.source === 'llm'
-      ? 'OpenRouter'
-      : llmReady(director.state.config) ? '劇組代班' : '欠 API Key'
-  els.writerBadge.title = director.state.error || ''
+    : art.busy
+      ? '畫師執筆中…'
+      : director.state.source === 'llm'
+        ? 'OpenRouter'
+        : llmReady(director.state.config) ? '劇組代班' : '欠 API Key'
+  els.writerBadge.title = director.state.error || art.lastError || ''
   els.screenplayList.innerHTML = director.state.scenes.map((scene) => `
     <article class="scene-card">
+      ${sceneArtMarkup(scene)}
       <header>
         <small>${escapeHtml(scene.slug)}</small>
         <b>${escapeHtml(scene.title)}</b>
-        <i>${scene.source === 'llm' ? 'LLM' : '劇組'}</i>
+        <i>${scene.source === 'llm' ? 'LLM' : '劇組'}${scene.artUrl ? ' · 插畫' : ''}</i>
       </header>
       <p>${escapeHtml(scene.narration)}</p>
       ${scene.line ? `<blockquote>${escapeHtml(scene.line)}</blockquote>` : ''}
@@ -516,6 +565,8 @@ function render(opts = {}) {
   renderMap()
   renderScreenplay()
   if (inspect) renderInspector()
+  const person = selected(world)
+  if (person) queueMicrotask(() => art.paintPerson(person))
 }
 
 function pickTraitChoices() {
@@ -586,6 +637,13 @@ function selectPerson(id) {
   world.selectedId = id
   render()
 }
+
+els.screenplayList.addEventListener('click', (event) => {
+  const retry = event.target.closest('[data-retry-art]')
+  if (!retry) return
+  const scene = director.state.scenes.find((item) => item.id === retry.dataset.retryArt)
+  if (scene) art.retryScene(scene, director.state.config)
+})
 
 els.roster.addEventListener('click', (event) => {
   const card = event.target.closest('[data-id]')
@@ -673,6 +731,9 @@ els.choices.addEventListener('click', (event) => {
 async function publishScene(scene) {
   if (!scene) return
   addLog(`【${PARTS[scene.part - 1].title}／${scene.title}】${scene.line || scene.narration}`, 'gold')
+  art.paintScene(scene)
+  const person = selected(world)
+  if (person) art.paintPerson(person)
   render()
 }
 
@@ -687,8 +748,10 @@ function openLlmModal() {
   const config = loadLlmConfig()
   els.llmBase.value = config.baseUrl || OPENROUTER_BASE
   els.llmModel.value = config.model || DEFAULT_MODEL
+  els.llmImageModel.value = config.imageModel || DEFAULT_IMAGE_MODEL
   els.llmKey.value = config.apiKey || ''
   els.llmEnabled.checked = config.enabled !== false
+  els.llmIllustrate.checked = config.illustrate !== false
   els.llmModal.classList.add('visible')
   els.llmModal.setAttribute('aria-hidden', 'false')
 }
@@ -704,9 +767,11 @@ els.llmForm.addEventListener('submit', async (event) => {
   event.preventDefault()
   saveLlmConfig({
     enabled: els.llmEnabled.checked,
+    illustrate: els.llmIllustrate.checked,
     baseUrl: els.llmBase.value,
     apiKey: els.llmKey.value,
     model: els.llmModel.value,
+    imageModel: els.llmImageModel.value,
   })
   director.reloadConfig()
   closeLlmModal()
@@ -741,7 +806,10 @@ function restartClock() {
     const reports = simulateMonth(world)
     applyReports(reports)
     director.onMonth(world).then((scene) => {
-      if (scene) addLog(`【${PARTS[scene.part - 1].title}／${scene.title}】${scene.line || scene.narration}`, 'gold')
+      if (scene) {
+        addLog(`【${PARTS[scene.part - 1].title}／${scene.title}】${scene.line || scene.narration}`, 'gold')
+        art.paintScene(scene)
+      }
       render({ inspect: !els.inspector.matches(':hover') })
     })
   }, Math.round(1600 / world.speed))
@@ -755,6 +823,7 @@ window.__cultivationFamily = {
   },
   state: world,
   director,
+  art,
   tick: () => {
     const reports = simulateMonth(world)
     applyReports(reports)

@@ -41,6 +41,8 @@ function blankConfig() {
     baseUrl: OPENROUTER_BASE,
     apiKey: '',
     model: DEFAULT_MODEL,
+    illustrate: true,
+    imageModel: 'google/gemini-2.5-flash-image',
   }
 }
 
@@ -54,6 +56,8 @@ export function loadLlmConfig() {
     if (!merged.model || merged.model === 'deepseek-chat' || merged.model === 'llama3.1') {
       merged.model = DEFAULT_MODEL
     }
+    if (!merged.imageModel) merged.imageModel = 'google/gemini-2.5-flash-image'
+    if (merged.illustrate === undefined) merged.illustrate = true
     return merged
   } catch {
     return blankConfig()
@@ -66,6 +70,9 @@ export function saveLlmConfig(config) {
     baseUrl: String(config.baseUrl || OPENROUTER_BASE).trim() || OPENROUTER_BASE,
     apiKey: String(config.apiKey || '').trim(),
     model: String(config.model || DEFAULT_MODEL).trim() || DEFAULT_MODEL,
+    illustrate: config.illustrate !== false,
+    imageModel: String(config.imageModel || 'google/gemini-2.5-flash-image').trim()
+      || 'google/gemini-2.5-flash-image',
   }))
 }
 
@@ -343,6 +350,9 @@ export function createDirector() {
       state.source = 'studio'
     }
     scene.time = calendarLabel(world)
+    scene.id = `${Date.now().toString(36)}-${state.beat}`
+    scene.artStatus = 'idle'
+    scene.artUrl = ''
     state.beat += 1
     state.scenes.unshift(scene)
     state.scenes = state.scenes.slice(0, 16)
