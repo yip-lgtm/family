@@ -1,4 +1,9 @@
 import './style.css'
+import { createAudio } from './audio.js'
+import { createVisualFx } from './fx.js'
+
+const audio = createAudio()
+const fx = createVisualFx()
 
 const TRAITS = [
   {
@@ -61,7 +66,18 @@ const EVENTS = [
   { type: 'bad', title: '靈田歉收', text: '山中寒潮突至，靈植盡數凋零。', qi: -350, detail: '靈氣 −350' },
 ]
 
-const STAGES = ['煉氣初期', '煉氣中期', '煉氣後期', '築基初期', '築基中期', '築基後期', '金丹初期']
+const STAGES = [
+  '煉氣初期',
+  '煉氣中期',
+  '煉氣後期',
+  '築基初期',
+  '築基中期',
+  '築基後期',
+  '金丹初期',
+  '金丹中期',
+  '金丹後期',
+  '元嬰初期',
+]
 
 const state = {
   qi: 680,
@@ -111,11 +127,16 @@ document.querySelector('#app').innerHTML = `
         <small>CULTIVATION FAMILY</small>
       </span>
     </a>
-    <div class="world-state">
-      <span class="pulse-dot"></span>
-      <span>靈脈穩定</span>
-      <i></i>
-      <span>玄元曆 146 年</span>
+    <div class="topbar-end">
+      <button type="button" class="music-toggle" id="music-toggle" aria-pressed="false">
+        🔊 音樂開/關
+      </button>
+      <div class="world-state">
+        <span class="pulse-dot"></span>
+        <span>靈脈穩定</span>
+        <i></i>
+        <span>玄元曆 146 年</span>
+      </div>
     </div>
   </header>
 
@@ -284,6 +305,7 @@ const elements = {
   choices: document.querySelector('#trait-choices'),
   toastRegion: document.querySelector('#toast-region'),
   eventTimer: document.querySelector('#event-timer'),
+  musicToggle: document.querySelector('#music-toggle'),
 }
 
 function timeLabel() {
@@ -429,6 +451,7 @@ function triggerRandomEvent(force = false) {
   const detail = event.qi > 0 && eventQiBonus > 1
     ? `靈氣 +${formatNumber(event.qi * eventQiBonus)}`
     : event.detail
+  audio.playEvent(event.type !== 'bad')
   showToast({ ...event, detail })
   addLog(`${event.title}：${event.text}（${detail}）`, event.type === 'bad' ? 'danger' : 'jade')
   render()
@@ -443,6 +466,8 @@ elements.gatherButton.addEventListener('click', (event) => {
   const amount = clickYield()
   state.qi += amount
   floatingQi(event.clientX, event.clientY, amount)
+  fx.burst(event.clientX, event.clientY)
+  audio.playQing()
   pressEffect(elements.gatherButton)
   render()
 })
@@ -452,6 +477,7 @@ elements.recruitButton.addEventListener('click', () => {
   if (state.qi < cost) return
   state.qi -= cost
   state.members += 1
+  audio.playRise()
   pressEffect(elements.recruitButton)
   addLog(`一名懷有靈根的後輩歸入族譜。族人增至 ${state.members} 位。`, 'jade')
   render()
@@ -462,10 +488,26 @@ elements.breakthroughButton.addEventListener('click', () => {
   if (state.qi < cost || state.realm >= STAGES.length - 1) return
   state.qi -= cost
   state.realm += 1
+  const nextRealm = STAGES[state.realm]
+  audio.playRise()
+  if (/金丹|元嬰/.test(nextRealm)) {
+    fx.flashScreen()
+  }
   pressEffect(elements.breakthroughButton)
-  addLog(`老祖破境成功，踏入「${STAGES[state.realm]}」！`, 'gold')
+  addLog(`老祖破境成功，踏入「${nextRealm}」！`, 'gold')
   render()
   window.setTimeout(openTraitModal, 350)
+})
+
+document.addEventListener('pointerdown', () => {
+  audio.unlock()
+}, { once: true })
+
+elements.musicToggle.addEventListener('click', async () => {
+  const on = await audio.setMusic(!audio.isMusicOn())
+  elements.musicToggle.setAttribute('aria-pressed', String(on))
+  elements.musicToggle.classList.toggle('is-on', on)
+  elements.musicToggle.textContent = on ? '🔊 音樂開' : '🔇 音樂關'
 })
 
 elements.choices.addEventListener('click', (event) => {
@@ -490,6 +532,10 @@ window.setInterval(() => {
 
 // Public verification hook; gameplay still uses the full random event cadence.
 window.__cultivationFamily = { triggerRandomEvent: () => triggerRandomEvent(true), state }
+
+document.addEventListener('pointerdown', () => {
+  audio.unlock()
+}, { once: true })
 
 renderLog()
 renderTraits()

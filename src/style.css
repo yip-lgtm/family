@@ -53,6 +53,34 @@ body::before {
   pointer-events: none;
 }
 
+#app {
+  position: relative;
+  z-index: 2;
+}
+
+#qi-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 236, 170, 0.88), rgba(212, 175, 55, 0.38) 38%, transparent 72%);
+}
+
+.screen-flash.is-on {
+  animation: gold-flash 0.72s ease-out;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -156,7 +184,8 @@ a:focus-visible {
   border: 1px solid var(--gold-dim);
   background: linear-gradient(145deg, rgba(215, 174, 91, 0.13), rgba(215, 174, 91, 0.02));
   transform: rotate(45deg);
-  box-shadow: inset 0 0 18px rgba(215, 174, 91, 0.08);
+  box-shadow: inset 0 0 18px rgba(215, 174, 91, 0.08), 0 0 14px rgba(212, 175, 55, 0.28);
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .brand-seal::first-letter {
@@ -173,6 +202,7 @@ a:focus-visible {
   font-size: 19px;
   letter-spacing: 0.18em;
   font-weight: 600;
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .brand-copy small,
@@ -188,6 +218,37 @@ a:focus-visible {
   color: var(--muted);
   font-size: 8px;
   margin-top: 2px;
+}
+
+.topbar-end {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.music-toggle {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--gold-bright);
+  background: linear-gradient(180deg, #1a150c, #100c08);
+  border: 1px solid var(--gold-dim);
+  padding: 0.38rem 0.85rem;
+  cursor: pointer;
+  text-shadow: 0 0 10px #d4af37;
+  box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.08);
+  white-space: nowrap;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.music-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.28);
+}
+
+.music-toggle.is-on {
+  background: linear-gradient(180deg, #2a210f, #16110a);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
 }
 
 .world-state {
@@ -253,11 +314,13 @@ a:focus-visible {
   letter-spacing: 0.05em;
   margin: 9px 0 8px;
   line-height: 1.25;
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .hero-heading h1 em {
   color: var(--gold-bright);
   font-style: normal;
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .hero-heading p {
@@ -322,13 +385,30 @@ a:focus-visible {
 }
 
 .panel {
-  border: 1px solid var(--line);
-  background:
+  border: 2px solid transparent;
+  background-image:
     linear-gradient(145deg, rgba(255, 255, 255, 0.018), transparent 40%),
-    var(--panel);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22), inset 0 1px rgba(255, 255, 255, 0.02);
+    linear-gradient(var(--panel), var(--panel)),
+    linear-gradient(135deg, #f8e7b0, #a67c2a 18%, #d4af37 50%, #6b4e14 82%, #f3d591);
+  background-origin: border-box;
+  background-clip: padding-box, padding-box, border-box;
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, 0.22),
+    0 0 22px rgba(212, 175, 55, 0.12),
+    inset 0 1px rgba(255, 255, 255, 0.02),
+    inset 0 2px 0 rgba(243, 213, 145, 0.28);
   position: relative;
   overflow: hidden;
+  clip-path: polygon(
+    12px 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    12px 100%,
+    0 calc(100% - 12px),
+    0 12px
+  );
 }
 
 .panel::before,
@@ -343,15 +423,17 @@ a:focus-visible {
 .panel::before {
   top: 7px;
   left: 7px;
-  border-top: 1px solid var(--gold-dim);
-  border-left: 1px solid var(--gold-dim);
+  border-top: 1px solid #f3d591;
+  border-left: 1px solid #f3d591;
+  box-shadow: -1px -1px 8px rgba(212, 175, 55, 0.35);
 }
 
 .panel::after {
   right: 7px;
   bottom: 7px;
-  border-right: 1px solid var(--gold-dim);
-  border-bottom: 1px solid var(--gold-dim);
+  border-right: 1px solid #d4af37;
+  border-bottom: 1px solid #d4af37;
+  box-shadow: 1px 1px 8px rgba(212, 175, 55, 0.28);
 }
 
 .stats-panel {
@@ -384,6 +466,7 @@ a:focus-visible {
   font-size: 17px;
   font-weight: 500;
   letter-spacing: 0.1em;
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .live-badge {
@@ -499,6 +582,7 @@ a:focus-visible {
   font-size: 13px;
   font-weight: 500;
   margin-top: 2px;
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .realm-label > span:last-child {
@@ -670,16 +754,33 @@ a:focus-visible {
 
 .cultivation-stage {
   min-height: 572px;
-  border: 1px solid rgba(119, 197, 156, 0.12);
+  border: 2px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background:
+  background-image:
     radial-gradient(circle at 50% 53%, rgba(68, 138, 108, 0.16), transparent 37%),
-    linear-gradient(180deg, rgba(12, 26, 23, 0.88), rgba(6, 14, 13, 0.93));
+    linear-gradient(180deg, rgba(12, 26, 23, 0.88), rgba(6, 14, 13, 0.93)),
+    linear-gradient(135deg, #f8e7b0, #a67c2a 18%, #d4af37 50%, #6b4e14 82%, #f3d591);
+  background-origin: border-box;
+  background-clip: padding-box, padding-box, border-box;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.3), 0 18px 60px rgba(0, 0, 0, 0.24);
+  box-shadow:
+    inset 0 0 90px rgba(0, 0, 0, 0.3),
+    0 18px 60px rgba(0, 0, 0, 0.24),
+    0 0 24px rgba(212, 175, 55, 0.14),
+    inset 0 2px 0 rgba(243, 213, 145, 0.3);
+  clip-path: polygon(
+    14px 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0 calc(100% - 14px),
+    0 14px
+  );
 }
 
 .cultivation-stage::before {
@@ -1128,8 +1229,12 @@ a:focus-visible {
   align-items: center;
   gap: 12px;
   padding: 0 18px;
-  border: 1px solid rgba(119, 197, 156, 0.11);
-  background: rgba(9, 19, 17, 0.72);
+  border: 2px solid transparent;
+  background-image:
+    linear-gradient(rgba(9, 19, 17, 0.92), rgba(9, 19, 17, 0.92)),
+    linear-gradient(135deg, #f8e7b0, #d4af37 50%, #6b4e14);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
 }
 
 .omen-timer > span {
@@ -1393,6 +1498,7 @@ footer p {
   font-size: 26px;
   font-weight: 500;
   letter-spacing: 0.19em;
+  text-shadow: 0 0 10px #d4af37;
 }
 
 .trait-modal > p {
@@ -1542,6 +1648,11 @@ footer p {
 @keyframes reveal-trait {
   from { opacity: 0; transform: translateX(10px); }
 }
+@keyframes gold-flash {
+  0% { opacity: 0; }
+  18% { opacity: 1; }
+  100% { opacity: 0; }
+}
 
 @media (max-width: 1120px) {
   .dashboard-grid {
@@ -1578,6 +1689,11 @@ footer p {
   .world-state span:last-child,
   .world-state i {
     display: none;
+  }
+
+  .music-toggle {
+    font-size: 10px;
+    padding: 0.3rem 0.6rem;
   }
 
   .game-shell {
