@@ -1,525 +1,497 @@
 import './style.css'
 
-const icon = (name) => {
-  const paths = {
-    people: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
-    mountain: '<path d="m3 20 6-10 4 6 2-3 6 7H3Z"/><path d="m7.3 13 1.7-3 1.8 2.7M15 13l1.3 2"/>',
-    spark: '<path d="m12 3-1.2 4.2a5 5 0 0 1-3.5 3.5L3 12l4.3 1.2a5 5 0 0 1 3.5 3.5L12 21l1.2-4.3a5 5 0 0 1 3.5-3.5L12 3Z"/>',
-    dna: '<path d="M4 3c8 4 8 14 16 18M20 3C12 7 12 17 4 21M7 6h10M6 18h12M9 10h6M9 14h6"/>',
-    scroll: '<path d="M8 2h11a3 3 0 0 1 3 3v1H8V2Z"/><path d="M19 6v13a3 3 0 0 1-3 3H5a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v2h5"/><path d="M16 22a3 3 0 0 0 3-3v-1H8v1a3 3 0 0 1-3 3M11 10h5M11 14h5"/>',
-    chevron: '<path d="m9 18 6-6-6-6"/>',
-    reset: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
-  }
-  return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`
+const TRAITS = [
+  {
+    id: 'prosperity',
+    icon: '囍',
+    name: '多子多福',
+    english: 'Abundant Descendants',
+    description: '招募族人消耗降低 20%',
+    modifier: 'Recruit cost −20%',
+  },
+  {
+    id: 'heaven-root',
+    icon: '靈',
+    name: '天靈根血脈',
+    english: 'Heavenly Spirit Root',
+    description: '每位族人的基礎靈氣產量提升 50%',
+    modifier: 'Member Qi +50%',
+  },
+  {
+    id: 'diligence',
+    icon: '勤',
+    name: '勤能補拙',
+    english: 'Diligence Prevails',
+    description: '閉關修煉獲得雙倍靈氣',
+    modifier: 'Gather Qi ×2',
+  },
+  {
+    id: 'jade-bones',
+    icon: '玉',
+    name: '冰肌玉骨',
+    english: 'Jade-Boned Lineage',
+    description: '全族靈氣產量提升 25%',
+    modifier: 'All Qi +25%',
+  },
+  {
+    id: 'merchant',
+    icon: '寶',
+    name: '奇貨可居',
+    english: 'Spirit Merchant',
+    description: '招募費用增長速度降低 15%',
+    modifier: 'Cost scaling −15%',
+  },
+  {
+    id: 'ancestral',
+    icon: '祖',
+    name: '先祖庇佑',
+    english: 'Ancestor’s Blessing',
+    description: '突發事件的靈氣收益提升 50%',
+    modifier: 'Event rewards +50%',
+  },
+]
+
+const EVENTS = [
+  { type: 'good', title: '仙草現世', text: '家族子弟在後山發現百年靈芝！', qi: 500, detail: '靈氣 +500' },
+  { type: 'good', title: '天作之合', text: '家族喜結良緣，香火愈盛。', members: 2, detail: '族人 +2' },
+  { type: 'good', title: '高人指點', text: '雲遊真人傳下一縷修行心得。', qi: 280, detail: '靈氣 +280' },
+  { type: 'good', title: '靈脈湧動', text: '地底靈脈忽然復甦，滿院清輝。', qi: 800, detail: '靈氣 +800' },
+  { type: 'bad', title: '外敵來襲', text: '敵對家族夜襲山門！', members: -1, detail: '族人 −1' },
+  { type: 'bad', title: '走火入魔', text: '一名族人修行冒進，靈氣四散。', qi: -200, detail: '靈氣 −200' },
+  { type: 'bad', title: '靈田歉收', text: '山中寒潮突至，靈植盡數凋零。', qi: -350, detail: '靈氣 −350' },
+]
+
+const STAGES = ['煉氣初期', '煉氣中期', '煉氣後期', '築基初期', '築基中期', '築基後期', '金丹初期']
+
+const state = {
+  qi: 680,
+  members: 6,
+  realm: 0,
+  traits: [],
+  logs: [
+    { time: '辰時', text: '青嵐世家於蒼梧山立下道統。', tone: 'gold' },
+    { time: '巳時', text: '靈脈運轉穩定，族人開始吐納。', tone: 'jade' },
+  ],
+  eventCountdown: 0,
 }
+
+const hasTrait = (id) => state.traits.includes(id)
+const clickYield = () => 10 * (hasTrait('diligence') ? 2 : 1)
+const qiRate = () => {
+  const rootBonus = hasTrait('heaven-root') ? 1.5 : 1
+  const familyBonus = hasTrait('jade-bones') ? 1.25 : 1
+  return state.members * rootBonus * familyBonus
+}
+const recruitCost = () => {
+  const scaling = hasTrait('merchant') ? 1.2975 : 1.35
+  const discount = hasTrait('prosperity') ? 0.8 : 1
+  return Math.round(80 * scaling ** (state.members - 1) * discount)
+}
+const breakthroughCost = () => Math.round(500 * 2.15 ** state.realm)
+const formatNumber = (value) => new Intl.NumberFormat('zh-Hant', {
+  maximumFractionDigits: value < 100 ? 1 : 0,
+}).format(value)
 
 document.querySelector('#app').innerHTML = `
   <div class="ambient" aria-hidden="true">
-    <div class="stars stars-one"></div>
-    <div class="stars stars-two"></div>
-    <div class="mountain mountain-back"></div>
-    <div class="mountain mountain-front"></div>
-    <div class="mist mist-one"></div>
-    <div class="mist mist-two"></div>
+    <span class="mist mist-one"></span>
+    <span class="mist mist-two"></span>
+    <span class="star star-one"></span>
+    <span class="star star-two"></span>
+    <span class="star star-three"></span>
   </div>
 
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
   <header class="topbar">
-    <a class="brand" href="#" aria-label="雲隱仙門首頁">
-      <span class="brand-mark"><span>雲</span></span>
+    <a class="brand" href="#" aria-label="青嵐世家首頁">
+      <span class="brand-seal">嵐</span>
       <span class="brand-copy">
-        <strong>雲隱仙門</strong>
+        <strong>青嵐世家</strong>
         <small>CULTIVATION FAMILY</small>
       </span>
     </a>
-    <div class="season">
-      <span class="season-pulse"></span>
-      <span>青嵐曆 · <strong id="year">元年</strong></span>
-      <span class="divider"></span>
-      <span class="save-state">靈契已同步</span>
+    <div class="world-state">
+      <span class="pulse-dot"></span>
+      <span>靈脈穩定</span>
+      <i></i>
+      <span>玄元曆 146 年</span>
     </div>
-    <button id="reset-btn" class="icon-button" type="button" aria-label="重開家族" title="重開家族">
-      ${icon('reset')}
-    </button>
   </header>
 
   <main class="game-shell">
-    <section class="intro">
+    <section class="hero-heading">
       <div>
-        <p class="eyebrow"><span></span> 一脈相承 · 萬世不息</p>
-        <h1>問道長生，<em>福澤後人</em></h1>
-        <p class="intro-copy">天地靈氣，聚於一念。帶領雲氏一族修行破境，讓每一次抉擇化作後世血脈中的力量。</p>
+        <span class="eyebrow">蒼梧山 · 青嵐血脈</span>
+        <h1>一脈承仙途，<em>百世鑄道統</em></h1>
+        <p>引天地之靈氣，興家族之氣運。你的每一次抉擇，都將流傳於後世。</p>
       </div>
-      <div class="realm-seal">
-        <span>當前境界</span>
-        <strong id="realm-header">煉氣初期</strong>
+      <div class="fortune-mark" aria-label="家族氣運昌盛">
+        <span>家族氣運</span>
+        <strong>昌盛</strong>
       </div>
     </section>
 
-    <section class="dashboard-grid">
-      <article class="cultivation-card panel">
-        <div class="panel-corner top-left"></div><div class="panel-corner top-right"></div>
-        <div class="panel-corner bottom-left"></div><div class="panel-corner bottom-right"></div>
-        <div class="cultivation-visual" aria-hidden="true">
-          <div class="orbit orbit-outer"><i></i><i></i><i></i></div>
-          <div class="orbit orbit-inner"><i></i><i></i></div>
-          <div class="qi-core"><span class="core-rune">氣</span></div>
-          <div class="energy-line line-one"></div>
-          <div class="energy-line line-two"></div>
-        </div>
-        <div class="qi-readout">
-          <span>家族靈氣</span>
-          <strong id="qi-value">88</strong>
-          <small><b id="qi-rate">+1.0</b> 靈氣 / 秒</small>
-        </div>
-        <button id="gather-btn" class="primary-button" type="button">
-          <span class="button-shine"></span>
-          ${icon('spark')}
-          <span><strong>閉關修煉</strong><small>Gather Qi · 每次 +<b id="click-power">10</b></small></span>
-          <kbd>SPACE</kbd>
-        </button>
-        <p class="action-hint">點擊或按下空白鍵凝聚天地靈氣</p>
-      </article>
-
-      <aside class="stats-column">
-        <article class="panel family-panel">
+    <div class="dashboard-grid">
+      <aside class="left-column">
+        <section class="panel stats-panel">
           <div class="panel-heading">
-            <div><p class="section-kicker">YUN CLAN</p><h2>雲氏家族</h2></div>
-            <span class="rank-badge">九品仙族</span>
+            <span>
+              <small>FAMILY LEDGER</small>
+              <h2>家族總覽</h2>
+            </span>
+            <span class="live-badge">生生不息</span>
           </div>
-          <div class="stat-list">
-            <div class="stat-row">
-              <span class="stat-icon jade">${icon('people')}</span>
-              <span><small>家族成員</small><strong><b id="members-value">1</b> <i>人</i></strong></span>
-              <span class="growth">靈氣產能主力</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-icon gold">${icon('mountain')}</span>
-              <span><small>老祖境界</small><strong id="realm-value">煉氣初期</strong></span>
-              <span class="realm-dots" id="realm-dots" aria-hidden="true"></span>
-            </div>
-          </div>
-          <div class="realm-progress">
-            <div class="progress-label">
-              <span>突破進度</span><span><b id="realm-progress-percent">0</b>%</span>
-            </div>
-            <div class="progress-track"><span id="realm-progress-bar"></span></div>
-            <small>尚需 <b id="realm-remaining">512</b> 靈氣感悟天道</small>
-          </div>
-        </article>
 
-        <article class="panel actions-panel">
-          <div class="action-item">
-            <div class="action-title">
-              <span class="action-glyph">納</span>
-              <span><strong>招募族人</strong><small>壯大家族，提升靈氣產出</small></span>
+          <div class="stat-card qi-stat">
+            <span class="stat-icon">氣</span>
+            <div>
+              <small>天地靈氣</small>
+              <strong id="qi-value">0</strong>
+              <span><b>↗</b> <span id="qi-rate">0</span> / 秒</span>
             </div>
-            <button id="recruit-btn" class="secondary-button" type="button">
-              <span>招募</span><b><i>◈</i> <span id="recruit-cost">80</span></b>
-            </button>
           </div>
-          <div class="action-divider"></div>
-          <div class="action-item">
-            <div class="action-title">
-              <span class="action-glyph gold-glyph">破</span>
-              <span><strong>老祖突破</strong><small>破境後覺醒一項家族天賦</small></span>
+          <div class="stat-card">
+            <span class="stat-icon member-icon">族</span>
+            <div>
+              <small>家族族人</small>
+              <strong><span id="member-value">0</span><i>位</i></strong>
+              <span>同心修煉，共築仙途</span>
             </div>
-            <button id="breakthrough-btn" class="secondary-button breakthrough-button" type="button">
-              <span>突破</span><b><i>◈</i> <span id="breakthrough-cost">600</span></b>
-            </button>
           </div>
-        </article>
+
+          <div class="realm-block">
+            <div class="realm-label">
+              <span><small>老祖境界</small><strong id="realm-name">煉氣初期</strong></span>
+              <span id="realm-progress-label">0 / 0</span>
+            </div>
+            <div class="progress-track"><span id="realm-progress"></span></div>
+            <p>突破後可覺醒一項家族傳承</p>
+          </div>
+        </section>
+
+        <section class="panel actions-panel">
+          <div class="section-title">
+            <span>◈</span><h2>家族經營</h2><i></i>
+          </div>
+          <button id="recruit-button" class="game-button secondary-button" type="button">
+            <span class="button-glyph">人</span>
+            <span><strong>招募族人</strong><small>延續香火，壯大家族</small></span>
+            <span class="cost"><b id="recruit-cost">0</b><small>靈氣</small></span>
+          </button>
+          <button id="breakthrough-button" class="game-button gold-button" type="button">
+            <span class="button-glyph">境</span>
+            <span><strong>老祖突破</strong><small id="breakthrough-hint">衝擊下一境界</small></span>
+            <span class="cost"><b id="breakthrough-cost">0</b><small>靈氣</small></span>
+          </button>
+        </section>
       </aside>
-    </section>
 
-    <section class="lower-grid">
-      <article class="panel heritage-panel">
-        <div class="panel-heading compact">
-          <div class="heading-with-icon">
-            <span class="title-icon">${icon('dna')}</span>
-            <div><p class="section-kicker">FAMILY HERITAGE</p><h2>家族傳承</h2></div>
-          </div>
-          <span id="trait-count" class="count-badge">0 天賦</span>
+      <section class="cultivation-stage">
+        <div class="stage-header">
+          <span></span>
+          <div><small>SPIRIT NEXUS</small><h2>家族靈樞</h2></div>
+          <span></span>
         </div>
-        <div id="trait-list" class="trait-list">
-          <div class="empty-traits">
+
+        <div class="nexus-wrap">
+          <div class="orbit orbit-outer"><i></i><i></i><i></i></div>
+          <div class="orbit orbit-inner"></div>
+          <button id="gather-button" class="qi-orb" type="button" aria-label="閉關修煉，凝聚靈氣">
+            <span class="orb-aura"></span>
+            <span class="orb-rune">炁</span>
+            <span class="orb-copy"><strong>閉關修煉</strong><small>GATHER QI</small></span>
+          </button>
+          <span class="nexus-particle particle-one"></span>
+          <span class="nexus-particle particle-two"></span>
+          <span class="nexus-particle particle-three"></span>
+        </div>
+        <p class="gather-message">點擊靈樞凝聚 <strong id="click-yield">+10</strong> 靈氣</p>
+        <span class="meditation-note">「 心若止水，氣自歸元 」</span>
+      </section>
+
+      <aside class="right-column">
+        <section class="panel heritage-panel">
+          <div class="panel-heading">
+            <span>
+              <small>FAMILY HERITAGE</small>
+              <h2>家族傳承</h2>
+            </span>
+            <span class="dna-mark">⌘</span>
+          </div>
+          <div id="trait-list" class="trait-list"></div>
+          <div id="empty-traits" class="empty-traits">
             <span class="empty-seal">承</span>
-            <div><strong>血脈尚待覺醒</strong><p>老祖突破境界時，可擇一天賦傳予後世。</p></div>
+            <strong>傳承尚未覺醒</strong>
+            <p>老祖突破境界時，可從三項家族天賦中擇一，福澤後世。</p>
           </div>
-        </div>
-      </article>
+        </section>
 
-      <article class="panel chronicle-panel">
-        <div class="panel-heading compact">
-          <div class="heading-with-icon">
-            <span class="title-icon scroll-icon">${icon('scroll')}</span>
-            <div><p class="section-kicker">CLAN CHRONICLE</p><h2>家族紀事</h2></div>
+        <section class="panel log-panel">
+          <div class="log-heading">
+            <span><i></i><strong>家族志</strong><small>CLAN CHRONICLE</small></span>
+            <span class="log-live"><i></i> 載錄中</span>
           </div>
-          <span class="live-badge"><i></i> 記錄中</span>
-        </div>
-        <div id="log-list" class="log-list" aria-live="polite"></div>
-        <div class="log-fade"></div>
-      </article>
-    </section>
+          <div id="log-list" class="log-list"></div>
+          <div class="scroll-end"><i></i><span>卷</span><i></i></div>
+        </section>
 
-    <footer>
-      <span>雲氏族訓</span><i></i><p>心如止水，行若驚雷；一人得道，福澤萬代。</p><i></i><span>第壹卷</span>
-    </footer>
+        <div class="omen-timer">
+          <span>✦</span>
+          <p><small>天機流轉</small><strong id="event-timer">下一次天象：-- 秒</strong></p>
+        </div>
+      </aside>
+    </div>
   </main>
 
-  <div id="trait-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="trait-modal-title" hidden>
-    <div class="modal">
-      <div class="modal-aura" aria-hidden="true"></div>
-      <p class="modal-kicker">BLOODLINE AWAKENED</p>
-      <div class="modal-seal">傳</div>
+  <footer>
+    <span>青嵐家訓</span>
+    <p>修身 · 齊家 · 問道 · 長生</p>
+    <span>玄元146</span>
+  </footer>
+
+  <div id="trait-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="trait-modal" role="dialog" aria-modal="true" aria-labelledby="trait-modal-title">
+      <div class="modal-glow"></div>
+      <span class="modal-seal">脈</span>
+      <small>ANCESTRAL AWAKENING</small>
       <h2 id="trait-modal-title">血脈覺醒</h2>
-      <p>老祖破境，天地賜福。請選擇一項天賦，銘刻於雲氏血脈之中。</p>
+      <p>老祖踏入新境，冥冥中三道傳承顯現。<br />擇其一，福澤青嵐後世。</p>
       <div id="trait-choices" class="trait-choices"></div>
-      <small class="modal-note">天賦一經選定，將永世流傳</small>
+      <span class="modal-footnote">此選擇將永久銘刻於族譜</span>
     </div>
   </div>
 `
 
-const TRAITS = [
-  { id: 'fertile', icon: '福', name: '多子多福', title: 'Prosperous Lineage', description: '招募族人的靈氣消耗降低 20%', effect: '招募成本 −20%' },
-  { id: 'heaven-root', icon: '靈', name: '天靈根血脈', title: 'Celestial Spirit Root', description: '純淨靈根流傳後世，每位族人的基礎產氣提升 50%', effect: '族人產氣 +50%' },
-  { id: 'diligence', icon: '勤', name: '勤能補拙', title: 'Enduring Resolve', description: '族人以勤補拙，閉關修煉所得靈氣翻倍', effect: '點擊靈氣 ×2' },
-  { id: 'harmony', icon: '和', name: '和氣致祥', title: 'Household Harmony', description: '家族同心同德，招募成本額外降低 10%', effect: '招募成本 −10%' },
-  { id: 'dao-heart', icon: '道', name: '玲瓏道心', title: 'Lucid Dao Heart', description: '對天道的感悟更敏銳，突破所需靈氣降低 15%', effect: '突破成本 −15%' },
-  { id: 'spirit-vein', icon: '脈', name: '靈脈眷族', title: 'Blessed Spirit Vein', description: '祖地靈脈日益昌盛，全族產氣提升 25%', effect: '總產氣 +25%' },
-  { id: 'meditation', icon: '定', name: '入定如淵', title: 'Profound Meditation', description: '閉關時心無旁騖，手動修煉所得再提升 50%', effect: '點擊靈氣 +50%' },
-  { id: 'fortune', icon: '運', name: '紫氣東來', title: 'Auspicious Fortune', description: '祥瑞護佑家門，正面事件的收益提升 50%', effect: '福緣收益 +50%' },
-  { id: 'guardian', icon: '守', name: '玄甲護族', title: 'Ancestral Guardian', description: '祖靈庇佑，突發事件造成的損失降低一半', effect: '災禍損失 −50%' },
-  { id: 'insight', icon: '悟', name: '觸類旁通', title: 'Inherited Insight', description: '族人互相印證道法，每位族人額外產出 0.5 靈氣', effect: '每人產氣 +0.5' },
-]
-
-const REALMS = ['煉氣初期', '煉氣中期', '煉氣後期', '築基初期', '築基後期', '金丹初期', '金丹後期', '元嬰初期', '元嬰圓滿']
-const GOOD_EVENTS = [
-  { text: '家族子弟在後山發現百年靈芝！', qi: 500 },
-  { text: '家族喜結良緣，枝繁葉茂！', members: 2 },
-  { text: '雲海現出七彩祥瑞，族人頓有所悟！', qi: 320 },
-  { text: '遠遊族人帶回一袋上品靈石！', qi: 260 },
-]
-const BAD_EVENTS = [
-  { text: '敵對家族趁夜偷襲山門！', members: -1 },
-  { text: '族人修煉不慎走火入魔！', qi: -200 },
-  { text: '護山陣法出現裂隙，靈氣逸散！', qi: -150 },
-  { text: '靈田遭遇罕見寒潮，收成受損！', qi: -120 },
-]
-
-const defaultState = {
-  qi: 88,
-  members: 1,
-  realm: 0,
-  traits: [],
-  logs: [],
-  startedAt: Date.now(),
-  lastSavedAt: Date.now(),
+const elements = {
+  qi: document.querySelector('#qi-value'),
+  qiRate: document.querySelector('#qi-rate'),
+  members: document.querySelector('#member-value'),
+  realm: document.querySelector('#realm-name'),
+  realmProgress: document.querySelector('#realm-progress'),
+  realmProgressLabel: document.querySelector('#realm-progress-label'),
+  recruitCost: document.querySelector('#recruit-cost'),
+  breakthroughCost: document.querySelector('#breakthrough-cost'),
+  breakthroughHint: document.querySelector('#breakthrough-hint'),
+  clickYield: document.querySelector('#click-yield'),
+  recruitButton: document.querySelector('#recruit-button'),
+  breakthroughButton: document.querySelector('#breakthrough-button'),
+  gatherButton: document.querySelector('#gather-button'),
+  traitList: document.querySelector('#trait-list'),
+  emptyTraits: document.querySelector('#empty-traits'),
+  logList: document.querySelector('#log-list'),
+  modal: document.querySelector('#trait-modal'),
+  choices: document.querySelector('#trait-choices'),
+  toastRegion: document.querySelector('#toast-region'),
+  eventTimer: document.querySelector('#event-timer'),
 }
 
-const stored = localStorage.getItem('yun-clan-save')
-let state
-try {
-  state = stored ? { ...defaultState, ...JSON.parse(stored) } : { ...defaultState }
-} catch {
-  state = { ...defaultState }
+function timeLabel() {
+  return new Intl.DateTimeFormat('zh-Hant', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date())
 }
 
-const $ = (selector) => document.querySelector(selector)
-const refs = {
-  qi: $('#qi-value'),
-  qiRate: $('#qi-rate'),
-  clickPower: $('#click-power'),
-  members: $('#members-value'),
-  realm: $('#realm-value'),
-  realmHeader: $('#realm-header'),
-  realmDots: $('#realm-dots'),
-  progress: $('#realm-progress-bar'),
-  progressPercent: $('#realm-progress-percent'),
-  remaining: $('#realm-remaining'),
-  recruitCost: $('#recruit-cost'),
-  breakthroughCost: $('#breakthrough-cost'),
-  recruitButton: $('#recruit-btn'),
-  breakthroughButton: $('#breakthrough-btn'),
-  gatherButton: $('#gather-btn'),
-  traitList: $('#trait-list'),
-  traitCount: $('#trait-count'),
-  logList: $('#log-list'),
-  modal: $('#trait-modal'),
-  traitChoices: $('#trait-choices'),
-  toastRegion: $('#toast-region'),
-  year: $('#year'),
+function addLog(text, tone = '') {
+  state.logs.unshift({ time: timeLabel(), text, tone })
+  state.logs = state.logs.slice(0, 10)
+  renderLog()
 }
 
-const hasTrait = (id) => state.traits.includes(id)
-const formatNumber = (value) => {
-  if (value < 1000) return Math.floor(value).toLocaleString('zh-Hant')
-  const units = [['兆', 1e12], ['億', 1e8], ['萬', 1e4]]
-  const unit = units.find(([, size]) => value >= size)
-  if (!unit) return Math.floor(value).toLocaleString('zh-Hant')
-  return `${(value / unit[1]).toFixed(value >= unit[1] * 100 ? 0 : 1)}${unit[0]}`
-}
-
-const getQiPerSecond = () => {
-  let perMember = 1 + (hasTrait('insight') ? 0.5 : 0)
-  if (hasTrait('heaven-root')) perMember *= 1.5
-  let total = state.members * perMember * (1 + state.realm * 0.15)
-  if (hasTrait('spirit-vein')) total *= 1.25
-  return total
-}
-
-const getClickPower = () => {
-  let power = 10
-  if (hasTrait('diligence')) power *= 2
-  if (hasTrait('meditation')) power *= 1.5
-  return Math.round(power)
-}
-
-const getRecruitCost = () => {
-  let cost = 80 * Math.pow(1.62, state.members - 1)
-  if (hasTrait('fertile')) cost *= 0.8
-  if (hasTrait('harmony')) cost *= 0.9
-  return Math.max(20, Math.round(cost))
-}
-
-const getBreakthroughCost = () => {
-  if (state.realm >= REALMS.length - 1) return Infinity
-  let cost = 600 * Math.pow(3.2, state.realm)
-  if (hasTrait('dao-heart')) cost *= 0.85
-  return Math.round(cost)
-}
-
-const log = (message, type = 'normal') => {
-  const entry = { message, type, time: new Date().toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit' }) }
-  state.logs.unshift(entry)
-  state.logs = state.logs.slice(0, 30)
-  renderLogs()
-}
-
-const renderLogs = () => {
-  refs.logList.innerHTML = state.logs.map((entry, index) => `
-    <div class="log-entry ${entry.type}" style="--delay:${Math.min(index, 5) * 35}ms">
-      <span class="log-time">${entry.time}</span><i></i><p>${entry.message}</p>
+function renderLog() {
+  elements.logList.innerHTML = state.logs.map((item) => `
+    <div class="log-entry ${item.tone}">
+      <time>${item.time}</time>
+      <span>${item.text}</span>
     </div>
   `).join('')
 }
 
-const renderTraits = () => {
-  const active = state.traits.map((id) => TRAITS.find((trait) => trait.id === id)).filter(Boolean)
-  refs.traitCount.textContent = `${active.length} 天賦`
-  refs.traitList.innerHTML = active.length ? active.map((trait) => `
-    <div class="active-trait">
-      <span class="trait-rune">${trait.icon}</span>
-      <span><small>${trait.title}</small><strong>${trait.name}</strong><p>${trait.effect}</p></span>
-    </div>
-  `).join('') : `
-    <div class="empty-traits">
-      <span class="empty-seal">承</span>
-      <div><strong>血脈尚待覺醒</strong><p>老祖突破境界時，可擇一天賦傳予後世。</p></div>
-    </div>
-  `
+function renderTraits() {
+  elements.emptyTraits.hidden = state.traits.length > 0
+  elements.traitList.innerHTML = state.traits.map((traitId) => {
+    const trait = TRAITS.find((item) => item.id === traitId)
+    return `
+      <div class="active-trait">
+        <span>${trait.icon}</span>
+        <div><strong>${trait.name}</strong><small>${trait.modifier}</small></div>
+      </div>
+    `
+  }).join('')
 }
 
-const render = () => {
-  const recruitCost = getRecruitCost()
-  const breakthroughCost = getBreakthroughCost()
-  const percent = Number.isFinite(breakthroughCost) ? Math.min(100, (state.qi / breakthroughCost) * 100) : 100
-  refs.qi.textContent = formatNumber(state.qi)
-  refs.qiRate.textContent = `+${getQiPerSecond().toFixed(1)}`
-  refs.clickPower.textContent = getClickPower()
-  refs.members.textContent = state.members
-  refs.realm.textContent = REALMS[state.realm]
-  refs.realmHeader.textContent = REALMS[state.realm]
-  refs.progress.style.width = `${percent}%`
-  refs.progressPercent.textContent = Math.floor(percent)
-  refs.remaining.textContent = Number.isFinite(breakthroughCost) ? formatNumber(Math.max(0, breakthroughCost - state.qi)) : '0'
-  refs.recruitCost.textContent = formatNumber(recruitCost)
-  refs.breakthroughCost.textContent = Number.isFinite(breakthroughCost) ? formatNumber(breakthroughCost) : '圓滿'
-  refs.recruitButton.disabled = state.qi < recruitCost
-  refs.breakthroughButton.disabled = state.qi < breakthroughCost || !Number.isFinite(breakthroughCost)
-  refs.realmDots.innerHTML = REALMS.slice(0, 5).map((_, index) => `<i class="${index <= Math.min(state.realm, 4) ? 'active' : ''}"></i>`).join('')
-  const years = Math.max(1, Math.floor((Date.now() - state.startedAt) / 60000) + 1)
-  refs.year.textContent = years === 1 ? '元年' : `${years}年`
+function render() {
+  const cost = breakthroughCost()
+  const atMaxRealm = state.realm >= STAGES.length - 1
+  elements.qi.textContent = formatNumber(state.qi)
+  elements.qiRate.textContent = formatNumber(qiRate())
+  elements.members.textContent = formatNumber(state.members)
+  elements.realm.textContent = STAGES[Math.min(state.realm, STAGES.length - 1)]
+  elements.realmProgressLabel.textContent = atMaxRealm
+    ? '道心圓滿'
+    : `${formatNumber(Math.min(state.qi, cost))} / ${formatNumber(cost)}`
+  elements.realmProgress.style.width = atMaxRealm ? '100%' : `${Math.min((state.qi / cost) * 100, 100)}%`
+  elements.recruitCost.textContent = formatNumber(recruitCost())
+  elements.breakthroughCost.textContent = atMaxRealm ? '—' : formatNumber(cost)
+  elements.breakthroughHint.textContent = atMaxRealm ? '此界已臻圓滿' : `衝擊 ${STAGES[state.realm + 1]}`
+  elements.clickYield.textContent = `+${formatNumber(clickYield())}`
+  elements.recruitButton.disabled = state.qi < recruitCost()
+  elements.breakthroughButton.disabled = atMaxRealm || state.qi < cost
 }
 
-const createFloatingText = (x, y, amount) => {
-  const floater = document.createElement('span')
-  floater.className = 'floating-qi'
-  floater.textContent = `+${amount} Qi`
-  floater.style.left = `${x}px`
-  floater.style.top = `${y}px`
-  document.body.appendChild(floater)
-  floater.addEventListener('animationend', () => floater.remove())
+function floatingQi(x, y, amount) {
+  const float = document.createElement('span')
+  float.className = 'floating-qi'
+  float.textContent = `+${formatNumber(amount)} 靈氣`
+  float.style.left = `${x}px`
+  float.style.top = `${y}px`
+  document.body.append(float)
+  float.addEventListener('animationend', () => float.remove())
 }
 
-const gatherQi = (event) => {
-  if (refs.modal.hidden === false) return
-  const amount = getClickPower()
-  state.qi += amount
-  const rect = refs.gatherButton.getBoundingClientRect()
-  const x = event?.clientX || rect.left + rect.width / 2
-  const y = event?.clientY || rect.top + rect.height / 2
-  createFloatingText(x, y, amount)
-  refs.gatherButton.classList.remove('is-pulsing')
-  void refs.gatherButton.offsetWidth
-  refs.gatherButton.classList.add('is-pulsing')
+function pressEffect(button) {
+  button.classList.remove('is-pressed')
+  void button.offsetWidth
+  button.classList.add('is-pressed')
+  window.setTimeout(() => button.classList.remove('is-pressed'), 260)
+}
+
+function pickTraitChoices() {
+  const available = TRAITS.filter((trait) => !state.traits.includes(trait.id))
+  const pool = available.length >= 3 ? available : TRAITS
+  return [...pool].sort(() => Math.random() - 0.5).slice(0, 3)
+}
+
+function openTraitModal() {
+  const choices = pickTraitChoices()
+  elements.choices.innerHTML = choices.map((trait) => `
+    <button class="trait-choice" type="button" data-trait="${trait.id}">
+      <span class="choice-icon">${trait.icon}</span>
+      <small>${trait.english}</small>
+      <strong>${trait.name}</strong>
+      <p>${trait.description}</p>
+      <i>${trait.modifier}</i>
+      <b>選擇此傳承 <span>→</span></b>
+    </button>
+  `).join('')
+  elements.modal.classList.add('visible')
+  elements.modal.setAttribute('aria-hidden', 'false')
+  document.body.classList.add('modal-open')
+  elements.choices.querySelector('button')?.focus()
+}
+
+function chooseTrait(traitId) {
+  const trait = TRAITS.find((item) => item.id === traitId)
+  if (!trait) return
+  if (!state.traits.includes(traitId)) state.traits.push(traitId)
+  elements.modal.classList.remove('visible')
+  elements.modal.setAttribute('aria-hidden', 'true')
+  document.body.classList.remove('modal-open')
+  addLog(`血脈覺醒「${trait.name}」，${trait.description}。`, 'gold')
+  showToast({
+    type: 'heritage',
+    title: '家族傳承已覺醒',
+    text: trait.name,
+    detail: trait.modifier,
+  })
+  renderTraits()
   render()
 }
 
-const recruit = () => {
-  const cost = getRecruitCost()
+function showToast(event) {
+  const toast = document.createElement('div')
+  toast.className = `event-toast ${event.type}`
+  toast.innerHTML = `
+    <span class="toast-icon">${event.type === 'bad' ? '厄' : event.type === 'heritage' ? '脈' : '吉'}</span>
+    <div>
+      <small>${event.type === 'bad' ? 'UNEXPECTED TRIBULATION' : 'AUSPICIOUS OMEN'}</small>
+      <strong>${event.title}</strong>
+      <p>${event.text} <b>${event.detail}</b></p>
+    </div>
+    <span class="toast-timer"></span>
+  `
+  elements.toastRegion.append(toast)
+  window.setTimeout(() => toast.classList.add('leaving'), 3000)
+  window.setTimeout(() => toast.remove(), 3450)
+}
+
+function triggerRandomEvent(force = false) {
+  if (!force && Math.random() > 0.5) {
+    addLog('天機掠過，一夜無事，族人修行如常。')
+    return
+  }
+  const event = EVENTS[Math.floor(Math.random() * EVENTS.length)]
+  const eventQiBonus = hasTrait('ancestral') && event.qi > 0 ? 1.5 : 1
+  if (event.qi) state.qi = Math.max(0, state.qi + event.qi * eventQiBonus)
+  if (event.members) state.members = Math.max(1, state.members + event.members)
+  const detail = event.qi > 0 && eventQiBonus > 1
+    ? `靈氣 +${formatNumber(event.qi * eventQiBonus)}`
+    : event.detail
+  showToast({ ...event, detail })
+  addLog(`${event.title}：${event.text}（${detail}）`, event.type === 'bad' ? 'danger' : 'jade')
+  render()
+}
+
+function scheduleEvent() {
+  state.eventCountdown = Math.floor(15 + Math.random() * 16)
+  elements.eventTimer.textContent = `下一次天象：${state.eventCountdown} 秒`
+}
+
+elements.gatherButton.addEventListener('click', (event) => {
+  const amount = clickYield()
+  state.qi += amount
+  floatingQi(event.clientX, event.clientY, amount)
+  pressEffect(elements.gatherButton)
+  render()
+})
+
+elements.recruitButton.addEventListener('click', () => {
+  const cost = recruitCost()
   if (state.qi < cost) return
   state.qi -= cost
   state.members += 1
-  log(`雲氏迎來一位新族人。家族現有 ${state.members} 人。`, 'good')
+  pressEffect(elements.recruitButton)
+  addLog(`一名懷有靈根的後輩歸入族譜。族人增至 ${state.members} 位。`, 'jade')
   render()
-}
+})
 
-const getRandomTraits = () => [...TRAITS]
-  .filter((trait) => !state.traits.includes(trait.id))
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 3)
-
-const openTraitModal = () => {
-  const choices = getRandomTraits()
-  refs.traitChoices.innerHTML = choices.map((trait) => `
-    <button class="trait-choice" type="button" data-trait="${trait.id}">
-      <span class="choice-rune">${trait.icon}</span>
-      <small>${trait.title}</small><strong>${trait.name}</strong>
-      <p>${trait.description}</p>
-      <span class="choice-effect">${trait.effect}</span>
-      <span class="choose-label">選擇此傳承 ${icon('chevron')}</span>
-    </button>
-  `).join('')
-  refs.modal.hidden = false
-  requestAnimationFrame(() => refs.modal.classList.add('visible'))
-  refs.traitChoices.querySelector('.trait-choice')?.focus()
-}
-
-const selectTrait = (traitId) => {
-  const trait = TRAITS.find((item) => item.id === traitId)
-  if (!trait || state.traits.includes(traitId)) return
-  state.traits.push(traitId)
-  refs.modal.classList.remove('visible')
-  setTimeout(() => { refs.modal.hidden = true }, 300)
-  renderTraits()
-  render()
-  log(`血脈覺醒「${trait.name}」——${trait.effect}。`, 'heritage')
-  showToast('血脈傳承', `${trait.name} · ${trait.effect}`, 'good')
-  save()
-}
-
-const breakthrough = () => {
-  const cost = getBreakthroughCost()
-  if (state.qi < cost || !Number.isFinite(cost)) return
+elements.breakthroughButton.addEventListener('click', () => {
+  const cost = breakthroughCost()
+  if (state.qi < cost || state.realm >= STAGES.length - 1) return
   state.qi -= cost
   state.realm += 1
-  log(`老祖勘破玄關，成功踏入「${REALMS[state.realm]}」！`, 'breakthrough')
+  pressEffect(elements.breakthroughButton)
+  addLog(`老祖破境成功，踏入「${STAGES[state.realm]}」！`, 'gold')
   render()
-  openTraitModal()
-}
+  window.setTimeout(openTraitModal, 350)
+})
 
-const showToast = (title, message, type = 'good') => {
-  const toast = document.createElement('div')
-  toast.className = `event-toast ${type}`
-  toast.innerHTML = `
-    <span class="toast-icon">${type === 'good' ? '吉' : '劫'}</span>
-    <span><small>${title}</small><strong>${message}</strong></span>
-  `
-  refs.toastRegion.appendChild(toast)
-  requestAnimationFrame(() => toast.classList.add('show'))
-  setTimeout(() => {
-    toast.classList.remove('show')
-    setTimeout(() => toast.remove(), 400)
-  }, 3000)
-}
+elements.choices.addEventListener('click', (event) => {
+  const choice = event.target.closest('[data-trait]')
+  if (choice) chooseTrait(choice.dataset.trait)
+})
 
-const triggerRandomEvent = () => {
-  if (Math.random() > 0.5) return
-  const good = Math.random() > 0.42
-  const events = good ? GOOD_EVENTS : BAD_EVENTS
-  const event = events[Math.floor(Math.random() * events.length)]
-  let qiChange = event.qi || 0
-  let memberChange = event.members || 0
-  if (good && hasTrait('fortune')) {
-    qiChange = Math.round(qiChange * 1.5)
-    memberChange = Math.round(memberChange * 1.5)
-  }
-  if (!good && hasTrait('guardian')) {
-    qiChange = Math.ceil(qiChange * 0.5)
-    memberChange = Math.ceil(memberChange * 0.5)
-  }
-  state.qi = Math.max(0, state.qi + qiChange)
-  state.members = Math.max(1, state.members + memberChange)
-  const detail = qiChange
-    ? `靈氣 ${qiChange > 0 ? '+' : '−'}${Math.abs(qiChange)}`
-    : `族人 ${memberChange > 0 ? '+' : '−'}${Math.abs(memberChange)}`
-  showToast(good ? '祥瑞降臨' : '突發劫難', `${event.text} ${detail}`, good ? 'good' : 'bad')
-  log(`${event.text} ${detail}`, good ? 'event-good' : 'event-bad')
+window.setInterval(() => {
+  state.qi += qiRate() / 4
   render()
-}
+}, 250)
 
-const scheduleEvent = () => {
-  const delay = 15000 + Math.random() * 15000
-  setTimeout(() => {
+window.setInterval(() => {
+  state.eventCountdown -= 1
+  if (state.eventCountdown <= 0) {
     triggerRandomEvent()
     scheduleEvent()
-  }, delay)
-}
-
-const save = () => {
-  state.lastSavedAt = Date.now()
-  localStorage.setItem('yun-clan-save', JSON.stringify(state))
-  const saveState = $('.save-state')
-  saveState.textContent = '靈契已同步'
-  saveState.classList.add('saved')
-  setTimeout(() => saveState.classList.remove('saved'), 800)
-}
-
-refs.gatherButton.addEventListener('click', gatherQi)
-refs.recruitButton.addEventListener('click', recruit)
-refs.breakthroughButton.addEventListener('click', breakthrough)
-refs.traitChoices.addEventListener('click', (event) => {
-  const choice = event.target.closest('[data-trait]')
-  if (choice) selectTrait(choice.dataset.trait)
-})
-$('#reset-btn').addEventListener('click', () => {
-  if (!window.confirm('確定要斷開靈契，讓雲氏家族重新起步嗎？')) return
-  localStorage.removeItem('yun-clan-save')
-  window.location.reload()
-})
-document.addEventListener('keydown', (event) => {
-  if (event.code === 'Space' && !event.repeat && event.target.tagName !== 'BUTTON') {
-    event.preventDefault()
-    gatherQi()
-  }
-})
-
-if (stored) {
-  const elapsed = Math.min(4 * 60 * 60, Math.max(0, (Date.now() - state.lastSavedAt) / 1000))
-  const offlineQi = Math.floor(elapsed * getQiPerSecond())
-  if (offlineQi > 0) {
-    state.qi += offlineQi
-    log(`靈契於離線期間自行運轉，積聚了 ${formatNumber(offlineQi)} 靈氣。`, 'good')
   } else {
-    log('靈契重新連結，雲氏族運流轉如常。')
+    elements.eventTimer.textContent = `下一次天象：${state.eventCountdown} 秒`
   }
-} else {
-  log('雲氏老祖於青嵐山開宗立族，長生之路自此而始。', 'heritage')
-  log('點擊「閉關修煉」凝聚靈氣，或招募族人自動修行。')
-}
+}, 1000)
 
+// Public verification hook; gameplay still uses the full random event cadence.
+window.__cultivationFamily = { triggerRandomEvent: () => triggerRandomEvent(true), state }
+
+renderLog()
 renderTraits()
 render()
-let previousTick = performance.now()
-setInterval(() => {
-  const now = performance.now()
-  const delta = Math.min(1, (now - previousTick) / 1000)
-  previousTick = now
-  state.qi += getQiPerSecond() * delta
-  render()
-}, 100)
-setInterval(save, 5000)
-window.addEventListener('beforeunload', save)
 scheduleEvent()
