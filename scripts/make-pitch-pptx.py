@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Generate a 3-minute pitch deck for 教父世家."""
+import tempfile
 from pathlib import Path
 
+import segno
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
@@ -19,6 +21,17 @@ PANEL = RGBColor(0x14, 0x10, 0x0A)
 
 OUT = Path(__file__).resolve().parents[1] / "docs" / "教父世家-3分鐘簡報.pptx"
 TOTAL = 11
+
+PLAY_URL = "https://yip-lgtm.github.io/family/"
+SOURCE_URL = "https://github.com/yip-lgtm/family.git"
+MIRROR_URL = "https://github.com/yip-lgtm/qi-lineage"
+PLAY_SHORT = "yip-lgtm.github.io/family"
+SOURCE_SHORT = "github.com/yip-lgtm/family"
+MIRROR_SHORT = "github.com/yip-lgtm/qi-lineage"
+
+# Dark modules on cream: high contrast for a projector, gold frame on the tile.
+QR_DARK = "#0B0804"
+QR_LIGHT = "#F4E8C8"
 
 
 def set_run(run, text, size=18, bold=False, color=CREAM, font="Microsoft YaHei"):
@@ -101,6 +114,57 @@ def footer(slide, n):
        [(f"{n:02d}  /  {TOTAL:02d}", 11, False, MUTED)], PP_ALIGN.RIGHT)
 
 
+def qr_png(dirpath, url, name, scale=12, border=4):
+    """Rebuild a scannable QR PNG (quiet zone = border modules)."""
+    path = Path(dirpath) / f"{name}.png"
+    qr = segno.make(url, error="m")
+    qr.save(
+        str(path),
+        kind="png",
+        scale=scale,
+        border=border,
+        dark=QR_DARK,
+        light=QR_LIGHT,
+    )
+    return path
+
+
+def add_qr_tile(slide, png, left, top, size, caption, short, line_pt=1.75, extra=Inches(0.55)):
+    """Cream tile + gold frame. PNG already includes the quiet zone."""
+    frame = Inches(0.06)
+    sh = box(
+        slide,
+        left - frame,
+        top - frame,
+        size + frame * 2,
+        size + frame * 2,
+        CREAM,
+        GOLD,
+    )
+    sh.line.width = Pt(line_pt)
+    slide.shapes.add_picture(str(png), left, top, size, size)
+    cap_top = top + size + Inches(0.07)
+    tb(
+        slide,
+        left - extra,
+        cap_top,
+        size + extra * 2,
+        Inches(0.3),
+        [(caption, 15, True, GOLD)],
+        PP_ALIGN.CENTER,
+    )
+    tb(
+        slide,
+        left - extra - Inches(0.1),
+        cap_top + Inches(0.26),
+        size + extra * 2 + Inches(0.2),
+        Inches(0.28),
+        [(short, 11, False, MUTED)],
+        PP_ALIGN.CENTER,
+    )
+    return sh
+
+
 def new_slide(prs, n=None):
     s = prs.slides.add_slide(prs.slide_layouts[6])
     bg(s)
@@ -115,6 +179,12 @@ def main():
     prs = Presentation()
     prs.slide_width = W
     prs.slide_height = H
+
+    qr_tmp = tempfile.TemporaryDirectory(prefix="jiaofu-qr-")
+    qr_dir = qr_tmp.name
+    play_png = qr_png(qr_dir, PLAY_URL, "play", scale=14, border=4)
+    source_png = qr_png(qr_dir, SOURCE_URL, "source", scale=12, border=4)
+    mirror_png = qr_png(qr_dir, MIRROR_URL, "mirror", scale=12, border=4)
 
     # 1 Title
     s = new_slide(prs)
@@ -133,9 +203,13 @@ def main():
            ("玩：https://yip-lgtm.github.io/family/", 18, True, CYAN),
            ("源碼：https://github.com/yip-lgtm/family.git", 16, False, MUTED),
        ], PP_ALIGN.CENTER)
+    add_qr_tile(
+        s, play_png, Inches(11.62), Inches(5.22), Inches(1.18),
+        "玩", "掃碼即玩", line_pt=1.5, extra=Inches(0.22),
+    )
     add_notes(s, """大家好。呢個係教父世家。品牌印係「父」，英文 THE FAMILY。地圖標題：教父山門，GODFATHER GATE。
 你唔係點擊農夫。你入去係一間修仙世家，你係天道：睇住人，間中伸手改命。
-而家就可以玩：yip-lgtm.github.io/family。今日三分鐘：做咩、畫面點樣永遠有人、點做出嚟。""")
+而家就可以玩：右下角掃「玩」QR，或者 yip-lgtm.github.io/family。今日三分鐘：做咩、畫面點樣永遠有人、點做出嚟。""")
 
     # 2 Not a clicker
     s = new_slide(prs, 2)
@@ -356,27 +430,40 @@ BGM 係嗶哩官方嵌入，唔下載、唔轉檔、唔盜鏈音源。技術棧�
 
     # 11 Close
     s = new_slide(prs)
-    seal(s, Inches(6.23), Inches(0.72), Inches(0.82))
-    tb(s, Inches(0.8), Inches(1.62), Inches(11.7), Inches(0.4),
+    seal(s, Inches(6.23), Inches(0.38), Inches(0.7))
+    tb(s, Inches(0.8), Inches(1.12), Inches(11.7), Inches(0.32),
        [("結  ·  家訓", 14, False, GOLD)], PP_ALIGN.CENTER)
-    tb(s, Inches(0.8), Inches(2.08), Inches(11.7), Inches(1.25),
-       [("人死功法在。家在，戲就未完。", 32, True, GOLD)], PP_ALIGN.CENTER)
-    tb(s, Inches(0.8), Inches(3.45), Inches(11.7), Inches(1.7),
-       [
-           ("玩　　https://yip-lgtm.github.io/family/", 20, True, CYAN),
-           ("源碼　https://github.com/yip-lgtm/family.git", 18, False, MUTED),
-           ("鏡像　https://github.com/yip-lgtm/qi-lineage", 16, False, MUTED),
-       ], PP_ALIGN.CENTER)
-    tb(s, Inches(0.8), Inches(5.4), Inches(11.7), Inches(1.0),
+    tb(s, Inches(0.55), Inches(1.42), Inches(12.2), Inches(0.72),
+       [("人死功法在。家在，戲就未完。", 28, True, GOLD)], PP_ALIGN.CENTER)
+    play_size = Inches(2.28)
+    side_size = Inches(1.58)
+    play_top = Inches(2.22)
+    side_top = Inches(2.57)
+    add_qr_tile(
+        s, source_png, Inches(1.42), side_top, side_size,
+        "源碼", SOURCE_SHORT, line_pt=1.5,
+    )
+    add_qr_tile(
+        s, play_png, Inches(5.525), play_top, play_size,
+        "玩", PLAY_SHORT, line_pt=2.25,
+    )
+    add_qr_tile(
+        s, mirror_png, Inches(10.32), side_top, side_size,
+        "鏡像", MIRROR_SHORT, line_pt=1.5,
+    )
+    tb(s, Inches(0.8), Inches(5.62), Inches(11.7), Inches(1.15),
        [
            ("開源 · 瀏覽器即玩 · Key 可選 · 演示畫永遠在 · 劇組永遠代班", 16, False, MUTED),
            ("THE FAMILY  ·  教父山門  ·  GODFATHER GATE", 14, False, GOLD),
        ], PP_ALIGN.CENTER)
     add_notes(s, """收束。放置遊戲可以係一場有人、有怨、有遺產嘅戲。你係天道。少出手。睇住人。畫面永遠有人。
-人死功法在。家在，戲就未完。github.io/family。多謝。""")
+人死功法在。家在，戲就未完。掃中間最大個「玩」QR，或者 yip-lgtm.github.io/family。兩邊係源碼同鏡像。多謝。""")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    prs.save(str(OUT))
+    try:
+        prs.save(str(OUT))
+    finally:
+        qr_tmp.cleanup()
     print(f"Wrote {OUT} ({OUT.stat().st_size} bytes)")
 
 

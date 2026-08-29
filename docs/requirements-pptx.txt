@@ -1,1 +1,2 @@
 python-pptx>=1.0.0
+segno>=1.6.0
