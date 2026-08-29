@@ -157,162 +157,112 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
   <header class="topbar">
-    <a class="brand" href="#" aria-label="萬古仙族首頁">
-      <span class="brand-seal" aria-hidden="true">仙</span>
-      <span>
-        <strong>萬古仙族</strong>
-        <small>ETERNAL CLAN</small>
-      </span>
-    </a>
-    <div class="world-status">
-      <span class="status-dot"></span>
-      <span>青雲紀 · 第 <b>壹</b> 輪迴</span>
-      <span class="divider"></span>
-      <span id="save-status">傳承已銘刻</span>
+    <div class="top-left">
+      <span class="app-title">萬古仙族</span>
+      <span class="status-dot" title="天道運轉中"></span>
     </div>
-    <button id="reset-button" class="icon-button game-button" type="button" aria-label="重開家族" title="重開家族">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.93 4.93a10 10 0 1 1-1.12 12.2M3 8V3h5M3.8 3.8l4.5 4.5"/></svg>
-    </button>
+    <div class="top-center">
+      <span class="status-widget" style="color:#d2c5a3">📅 青雲紀</span>
+      <span class="widget-divider">|</span>
+      <span class="status-widget" style="color:#e1ab52">✨ 下次天機 <b id="event-countdown">-- 秒</b></span>
+      <span class="widget-divider">|</span>
+      <span class="status-widget" style="color:#e1b680">🏛 玄微一脈</span>
+      <span class="widget-divider">|</span>
+      <span class="status-widget" id="ranking-widget" style="color:#cfa53a">🏆 人榜未入</span>
+    </div>
+    <div class="top-right">
+      <span id="save-status">傳承已銘刻</span>
+      <button id="reset-button" class="icon-button game-button" type="button" aria-label="重開家族" title="重開家族">重開</button>
+    </div>
   </header>
 
-  <main class="game-shell">
-    <section class="page-heading">
-      <div>
-        <span class="eyebrow">CULTIVATION CHRONICLE</span>
-        <h1>家族修仙錄</h1>
-        <p>一人得道，血脈綿延。讓你的姓氏越過萬古長夜。</p>
+  <main class="hud">
+    <aside class="panel info-panel" aria-labelledby="overview-heading">
+      <div class="panel-header">
+        <div>
+          <div class="main-title" id="overview-heading">玄微一脈</div>
+          <div class="sub-title">老祖道號 · 玄微</div>
+        </div>
+        <span id="realm-badge" class="realm-badge">煉氣 · 一重</span>
       </div>
-      <div class="event-oracle" title="每 15 至 30 秒，天機或會顯現">
-        <span class="oracle-icon">✦</span>
-        <span><small>下次天機</small><strong id="event-countdown">-- 秒</strong></span>
-      </div>
-    </section>
+      <div class="panel-body">
+        <section class="section">
+          <div class="ancestor-stage">
+            <div class="ancestor-core"><span id="realm-glyph">氣</span></div>
+            <div class="realm-copy">
+              <small id="realm-english">QI REFINING</small>
+              <strong id="realm-name">煉氣境</strong>
+            </div>
+          </div>
+          <div class="stat-grid">
+            <article class="stat-card">
+              <small>家族靈氣</small>
+              <strong id="qi-value">0</strong>
+            </article>
+            <article class="stat-card">
+              <small>家族成員</small>
+              <strong id="member-value">1</strong>
+            </article>
+            <article class="stat-card wide">
+              <small>吐納效率</small>
+              <strong id="rate-value">+1 / 秒</strong>
+              <span id="rate-detail" class="stat-note">1 人修煉中</span>
+            </article>
+          </div>
+          <div class="progress-block">
+            <div class="progress-label">
+              <span>距離下次突破</span>
+              <b id="progress-copy">108 / 360</b>
+            </div>
+            <div class="progress-track" role="progressbar" aria-label="突破進度" aria-valuemin="0" aria-valuemax="100">
+              <span id="realm-progress"></span>
+            </div>
+          </div>
+        </section>
 
-    <div class="dashboard-grid">
-      <section class="panel overview-panel" aria-labelledby="overview-heading">
-        <div class="panel-heading">
-          <div>
-            <span class="eyebrow">ANCESTOR</span>
-            <h2 id="overview-heading">老祖境界</h2>
-          </div>
-          <span id="realm-badge" class="realm-badge">煉氣 · 一重</span>
-        </div>
-
-        <div class="ancestor-stage">
-          <div class="orbit orbit-outer"><i></i><i></i><i></i></div>
-          <div class="orbit orbit-inner"></div>
-          <div class="ancestor-core">
-            <span id="realm-glyph">氣</span>
-          </div>
-          <div class="realm-copy">
-            <small id="realm-english">QI REFINING</small>
-            <strong id="realm-name">煉氣境</strong>
-            <span>老祖道號 · 玄微</span>
-          </div>
-        </div>
-
-        <div class="stat-grid">
-          <article class="stat-card">
-            <span class="stat-icon qi-icon">◈</span>
-            <div><small>家族靈氣</small><strong id="qi-value">0</strong></div>
-          </article>
-          <article class="stat-card">
-            <span class="stat-icon member-icon">人</span>
-            <div><small>家族成員</small><strong id="member-value">1</strong></div>
-          </article>
-          <article class="stat-card wide">
-            <span class="stat-icon rate-icon">↗</span>
-            <div><small>吐納效率</small><strong id="rate-value">+1 / 秒</strong></div>
-            <span id="rate-detail" class="stat-note">1 人修煉中</span>
-          </article>
-        </div>
-
-        <div class="progress-block">
-          <div class="progress-label">
-            <span>距離下次突破</span>
-            <b id="progress-copy">108 / 360</b>
-          </div>
-          <div class="progress-track" role="progressbar" aria-label="突破進度" aria-valuemin="0" aria-valuemax="100">
-            <span id="realm-progress"></span>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel cultivation-panel" aria-labelledby="cultivation-heading">
-        <div class="panel-heading centered-heading">
-          <div>
-            <span class="eyebrow">MEDITATION</span>
-            <h2 id="cultivation-heading">天地吐納</h2>
-          </div>
-        </div>
-
-        <div class="cultivation-stage">
-          <div class="rune-ring" aria-hidden="true">
-            <span>乾</span><span>坤</span><span>震</span><span>巽</span>
-            <span>坎</span><span>離</span><span>艮</span><span>兌</span>
-          </div>
+        <section class="section">
+          <div class="section-title">修煉行動</div>
           <button id="gather-button" class="gather-button game-button" type="button">
             <span class="gather-aura"></span>
-            <span class="gather-symbol">炁</span>
-            <strong>閉關修煉</strong>
+            <strong>閉關修煉 Gather Qi</strong>
             <small>GATHER QI · <b id="click-gain">+10</b></small>
           </button>
-        </div>
-
-        <p class="cultivation-hint"><span>✦</span> 點擊法陣，凝聚天地靈氣</p>
-
-        <div class="action-stack">
-          <button id="recruit-button" class="action-button jade game-button" type="button">
-            <span class="action-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6"/></svg>
-            </span>
-            <span><strong>招募族人</strong><small>延續香火 · <b id="recruit-cost">100 靈氣</b></small></span>
-            <span class="button-arrow">›</span>
-          </button>
-          <button id="breakthrough-button" class="action-button gold game-button" type="button">
-            <span class="action-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M5 9l7-7 7 7M4 22h16"/></svg>
-            </span>
-            <span><strong>老祖突破</strong><small>破境承傳 · <b id="breakthrough-cost">360 靈氣</b></small></span>
-            <span class="button-arrow">›</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="panel heritage-panel" aria-labelledby="heritage-heading">
-        <div class="panel-heading">
-          <div>
-            <span class="eyebrow">FAMILY HERITAGE</span>
-            <h2 id="heritage-heading">🧬 家族傳承</h2>
+          <div class="action-stack">
+            <button id="recruit-button" class="action-button jade game-button" type="button">
+              <span><strong>招募族人 Recruit</strong><small><b id="recruit-cost">100 靈氣</b></small></span>
+            </button>
+            <button id="breakthrough-button" class="action-button gold game-button" type="button">
+              <span><strong>老祖突破 Breakthrough</strong><small><b id="breakthrough-cost">360 靈氣</b></small></span>
+            </button>
           </div>
-          <span class="dna-mark" aria-hidden="true">⌁</span>
-        </div>
-        <p class="panel-intro">老祖每次破境，都能將一縷道韻刻入後世血脈。</p>
-        <div id="trait-list" class="trait-list"></div>
-        <div class="heritage-footer">
-          <span class="lineage-tree" aria-hidden="true">◇──◇──◇</span>
-          <small id="heritage-count">0 道傳承已覺醒</small>
-        </div>
-      </section>
-    </div>
+        </section>
 
-    <section class="panel chronicle-panel" aria-labelledby="chronicle-heading">
-      <div class="chronicle-header">
-        <div>
-          <span class="eyebrow">CLAN CHRONICLE</span>
-          <h2 id="chronicle-heading">家族紀事</h2>
-        </div>
-        <span class="live-mark"><i></i> 卷宗續寫中</span>
+        <section class="section heritage-panel" aria-labelledby="heritage-heading">
+          <div class="section-title" id="heritage-heading">🧬 家族傳承 Family Heritage</div>
+          <p class="panel-intro">老祖每次破境，都能將一縷道韻刻入後世血脈。</p>
+          <div id="trait-list" class="trait-list"></div>
+          <small id="heritage-count">0 道傳承已覺醒</small>
+        </section>
+      </div>
+    </aside>
+
+    <section class="world-map" aria-label="祖地">
+      <div class="map-mist" aria-hidden="true"></div>
+      <div class="estate-plaque">
+        <div class="estate-name">玄微祖地</div>
+        <div class="estate-sub" id="estate-sub">散修世家 · 煉氣境</div>
+      </div>
+      <div id="member-layer" class="member-layer"></div>
+    </section>
+
+    <aside class="panel event-panel" aria-labelledby="chronicle-heading">
+      <div class="sidebar-header">
+        <h3 id="chronicle-heading">經歷</h3>
+        <span class="event-scope">家族</span>
       </div>
       <div id="log-list" class="log-list" aria-live="polite"></div>
-    </section>
+    </aside>
   </main>
-
-  <footer>
-    <span>萬古仙族 · 血脈不息</span>
-    <span class="footer-seal">傳</span>
-    <span>天道無常 · 勤修不輟</span>
-  </footer>
 
   <div id="trait-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="trait-modal-title" hidden>
     <div class="trait-modal">
@@ -358,6 +308,9 @@ const elements = {
   modal: getElement<HTMLElement>('#trait-modal'),
   traitChoices: getElement<HTMLElement>('#trait-choices'),
   toastRegion: getElement<HTMLElement>('#toast-region'),
+  memberLayer: getElement<HTMLElement>('#member-layer'),
+  rankingWidget: getElement<HTMLElement>('#ranking-widget'),
+  estateSub: getElement<HTMLElement>('#estate-sub'),
 }
 
 function formatNumber(value: number, precision = 0): string {
@@ -429,7 +382,6 @@ function renderLogs(): void {
       (entry) => `
         <article class="log-entry ${entry.type}">
           <time>${escapeHtml(entry.time)}</time>
-          <span class="log-node"></span>
           <p>${escapeHtml(entry.message)}</p>
         </article>`,
     )
@@ -474,6 +426,41 @@ function toChineseNumber(value: number): string {
   return ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'][value] ?? String(value)
 }
 
+function realmHudColor(realmIndex: number): string {
+  if (realmIndex >= 6) return '#fddc88'
+  if (realmIndex >= 4) return '#c488fd'
+  if (realmIndex >= 2) return '#88fdc4'
+  return '#cccccc'
+}
+
+function rankingLabel(realmIndex: number): string {
+  if (realmIndex >= 3) return '天榜'
+  if (realmIndex >= 2) return '地榜'
+  if (realmIndex >= 1) return '人榜'
+  return '人榜未入'
+}
+
+let lastTokenSig = ''
+
+function renderMemberTokens(): void {
+  const sig = `${state.members}:${state.realm}`
+  if (sig === lastTokenSig) return
+  lastTokenSig = sig
+  const count = Math.min(state.members, 20)
+  const color = realmHudColor(state.realm)
+  elements.memberLayer.innerHTML = Array.from({ length: count }, (_, index) => {
+    const ring = index === 0 ? 0 : 1 + Math.floor((index - 1) / 8)
+    const slot = index === 0 ? 0 : (index - 1) % 8
+    const angle = (slot / 8) * Math.PI * 2 - Math.PI / 2
+    const radius = index === 0 ? 0 : 16 + ring * 10
+    const x = 50 + Math.cos(angle) * radius
+    const y = 54 + Math.sin(angle) * radius * 0.7
+    const name = index === 0 ? '老祖' : `族人${index}`
+    const glyph = index === 0 ? '祖' : String(index)
+    return `<button type="button" class="member-token${index === 0 ? ' ancestor' : ''}" style="left:${x}%;top:${Math.min(86, Math.max(22, y))}%;color:${color}"><span class="token-avatar">${glyph}</span><span class="token-name">${name}</span></button>`
+  }).join('')
+}
+
 function render(): void {
   const realm = REALMS[state.realm]
   const rate = qiPerSecond()
@@ -501,6 +488,11 @@ function render(): void {
   elements.breakthroughCost.textContent = isMaxRealm ? '道法圓滿' : `${formatNumber(nextCost)} 靈氣`
   elements.breakthroughButton.disabled = isMaxRealm || state.qi < nextCost || state.pendingTraitChoice
   elements.clickGain.textContent = `+${formatNumber(clickGain())}`
+  elements.rankingWidget.textContent = `🏆 ${rankingLabel(state.realm)}`
+  elements.rankingWidget.style.color = realmHudColor(state.realm)
+  elements.estateSub.textContent = `散修世家 · ${realm.name}`
+  elements.realmBadge.style.color = realmHudColor(state.realm)
+  renderMemberTokens()
   renderLogs()
 }
 
@@ -513,7 +505,7 @@ function bump(element: HTMLElement): void {
 function spawnFloatingText(event: MouseEvent, amount: number): void {
   const floating = document.createElement('span')
   floating.className = 'floating-qi'
-  floating.textContent = `+${formatNumber(amount)} Qi`
+  floating.textContent = `+${formatNumber(amount)} 靈氣`
   floating.style.left = `${event.clientX}px`
   floating.style.top = `${event.clientY}px`
   document.body.append(floating)
@@ -723,6 +715,7 @@ function resetGame(): void {
   if (!window.confirm('確定要讓萬古仙族重入輪迴？所有傳承與修為都會消散。')) return
   localStorage.removeItem(STORAGE_KEY)
   state = defaultState()
+  lastTokenSig = ''
   closeTraitModal()
   renderTraits()
   logDirty = true

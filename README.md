@@ -1,6 +1,6 @@
 # 萬古仙族 · Eternal Clan
 
-一款以「修仙家族」為主題的 HTML5 放置遊戲。建立家族、凝聚靈氣、招募族人，並在老祖突破境界時選擇可永久改變玩法的家族天賦。
+一款以「修仙家族」為主題的 HTML5 放置遊戲。視覺語言（近黑 HUD、頂欄曆法／天象、左側情報、祖地地圖、右側經歷流）參考 [Cultivation World Simulator](https://github.com/4thfever/cultivation-world-simulator)；本專案是獨立的家族放置切片，並非該模擬器的移植。
 
 ## 遊戲內容
 
