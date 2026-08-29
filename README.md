@@ -18,6 +18,20 @@ built-in studio writer continues the same trilogy.
 
 Live site: https://yip-lgtm.github.io/family/
 
+## 3-minute pitch deck
+
+Cantonese product pitch (8 slides, 16:9, speaker notes included):
+
+- [docs/青嵐世家-3分鐘簡報.pptx](docs/青嵐世家-3分鐘簡報.pptx)
+- [docs/青嵐世家-3分鐘講稿.md](docs/青嵐世家-3分鐘講稿.md)
+
+Regenerate after copy changes:
+
+```bash
+pip install -r docs/requirements-pptx.txt
+python3 scripts/make-pitch-pptx.py
+```
+
 ## Gameplay
 
 - **教父三部曲連載** — 持續生成立譜／背叛／輓歌場面；可接 LLM 或用劇組代班。
