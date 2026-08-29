@@ -149,20 +149,15 @@ a:focus-visible {
   width: 39px;
   height: 39px;
   border: 1px solid rgba(221, 185, 83, 0.68);
+  border-radius: 2px;
   color: var(--gold-soft);
   font: 700 22px/1 var(--serif);
-  transform: rotate(45deg);
   background: linear-gradient(135deg, rgba(168, 127, 39, 0.2), rgba(43, 100, 81, 0.14));
   box-shadow: inset 0 0 14px rgba(215, 177, 71, 0.1);
 }
 
 .brand-seal {
   margin: 5px;
-}
-
-.brand-seal::first-letter,
-.footer-seal::first-letter {
-  transform: rotate(-45deg);
 }
 
 .brand > span:last-child {
