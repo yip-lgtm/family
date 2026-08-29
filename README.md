@@ -25,7 +25,7 @@ Live site: https://yip-lgtm.github.io/family/
 
 ## 3-minute pitch deck
 
-Cantonese product pitch (10 slides, 16:9, includes production workflow, speaker notes included):
+Cantonese product pitch (11 slides, 16:9, includes production workflow, bundled demo art, speaker notes included):
 
 - [docs/教父世家-3分鐘簡報.pptx](docs/教父世家-3分鐘簡報.pptx)
 - [docs/教父世家-3分鐘講稿.md](docs/教父世家-3分鐘講稿.md)
