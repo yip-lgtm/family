@@ -184,6 +184,9 @@ function addLog(message, type = 'system') {
   const time = new Date().toLocaleTimeString('zh-Hant', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   p.textContent = `【${time}】${message}`;
   logBox.appendChild(p);
+  while (logBox.children.length > 60) {
+    logBox.removeChild(logBox.firstChild);
+  }
   logBox.scrollTop = logBox.scrollHeight;
 }
 
@@ -227,7 +230,7 @@ function spawnFloatingText(x, y, text) {
 function showToast(message, isGood) {
   const toast = document.createElement('div');
   toast.className = `toast ${isGood ? 'toast-good' : 'toast-bad'}`;
-  toast.textContent = (isGood ? '✨ ' : '⚠️ ') + message;
+  toast.innerHTML = `<div class="toast-label">${isGood ? '吉兆' : '凶兆'} · 突發事件</div><div class="toast-body">${message}</div>`;
   toastContainer.appendChild(toast);
 
   setTimeout(() => {
@@ -270,7 +273,9 @@ function showTraitModal() {
 }
 
 function selectTrait(trait) {
-  state.traits.push({ id: trait.id, acquiredAt: Date.now() });
+  if (!state.traits.some((t) => t.id === trait.id)) {
+    state.traits.push({ id: trait.id, acquiredAt: Date.now() });
+  }
   state.pendingTraitChoice = false;
   traitModal.classList.add('hidden');
 
@@ -288,7 +293,6 @@ function gatherQi(e) {
   const amount = getClickQi();
   state.qi += amount;
   spawnFloatingText(e.clientX, e.clientY, `+${amount} Qi`);
-  addLog(`老祖閉關修煉，獲得 ${amount} 靈氣。`);
   updateUI();
 }
 
@@ -322,8 +326,14 @@ function applyEvent(event, isGood) {
     const minMembers = getTraitModifier('minMembers');
     state.members = Math.max(minMembers, state.members + event.members);
   }
-  showToast(event.text + (event.qi ? ` Qi ${event.qi > 0 ? '+' : ''}${event.qi}` : '') + (event.members ? ` Members ${event.members > 0 ? '+' : ''}${event.members}` : ''), isGood);
-  addLog(`突發事件：${event.text}`, isGood ? 'good' : 'bad');
+
+  const parts = [event.text];
+  if (event.qi) parts.push(`Qi ${event.qi > 0 ? '+' : ''}${event.qi}`);
+  if (event.members) parts.push(`Members ${event.members > 0 ? '+' : ''}${event.members}`);
+  const full = parts.join(' ');
+
+  showToast(full, isGood);
+  addLog(`突發事件：${full}`, isGood ? 'good' : 'bad');
   updateUI();
 }
 

@@ -485,6 +485,20 @@ body {
   pointer-events: auto;
 }
 
+.toast-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 0.2rem;
+  font-weight: 700;
+}
+
+.toast-body {
+  font-weight: 600;
+  line-height: 1.45;
+}
+
 .toast.toast-out {
   animation: toast-out 0.35s ease-in forwards;
 }

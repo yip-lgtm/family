@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:4321](http://localhost:4321).
+Open [http://127.0.0.1:43123](http://127.0.0.1:43123).
 
 ## Build
 
@@ -23,3 +23,10 @@ Open [http://localhost:4321](http://localhost:4321).
 npm run build
 npm run preview
 ```
+
+## How to play
+
+1. Click **閉關修煉** to gather Qi (floating text appears at the cursor).
+2. **招募族人** spends Qi to grow passive generation.
+3. **老祖突破** advances realm and opens a 1-of-3 Family Trait choice.
+4. Active traits appear under **🧬 家族傳承**; events may fire every 15–30s.
