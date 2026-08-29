@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-gold-50: #fefce8;
+    --color-gold-100: #fef9c3;
+    --color-gold-300: #fde047;
+    --color-gold-400: #facc15;
+    --color-gold-500: #eab308;
+    --color-gold-600: #ca8a04;
+    --color-jade-300: #6ee7b7;
+    --color-jade-400: #34d399;
+    --color-jade-500: #10b981;
+    --color-jade-600: #059669;
+  }
+
+  body {
+    background-color: #0b0c10;
+    color: #e2e8f0;
+    font-family: 'Noto Serif SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', serif, system-ui;
+    overflow-x: hidden;
+    user-select: none;
+  }
+}
+
+/* Custom mystical scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(202, 138, 4, 0.4);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(234, 179, 8, 0.7);
+}
+
+/* Animations */
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(-50%, -30px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -65px) scale(0.9);
+  }
+}
+
+.animate-float-up {
+  animation: float-up 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.25), inset 0 0 15px rgba(234, 179, 8, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(234, 179, 8, 0.5), inset 0 0 25px rgba(234, 179, 8, 0.25);
+  }
+}
+
+.glow-gold {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+@keyframes jade-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.25), inset 0 0 10px rgba(16, 185, 129, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.25);
+  }
+}
+
+.glow-jade {
+  animation: jade-glow 3s infinite ease-in-out;
+}
+
+@keyframes toast-slide-down {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30px) scale(0.95);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -20px) scale(0.95);
+  }
+}
+
+.animate-toast {
+  animation: toast-slide-down 3.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Ancient scroll texture styling */
+.scroll-container {
+  background: radial-gradient(circle at 50% 30%, #1e1b18 0%, #131211 100%);
+  border: 1px solid #785a28;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.scroll-border-pattern {
+  border-image: linear-gradient(to bottom, #d4af37, #5c4515, #d4af37) 1;
+}
+
+/* Mystical Card Styling */
+.mystic-card {
+  background: linear-gradient(145deg, rgba(20, 24, 33, 0.85) 0%, rgba(13, 16, 23, 0.95) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mystic-card:hover {
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.15);
+}
+
+/* Custom interactive button classes */
+.btn-mystic-gold {
+  background: linear-gradient(135deg, #b48608 0%, #714e04 50%, #452f02 100%);
+  border: 1px solid #facc15;
+  color: #fef08a;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-mystic-gold:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ca8a04 0%, #855d05 50%, #543902 100%);
+  border-color: #fef08a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(234, 179, 8, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.btn-mystic-gold:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.2);
+}
+
+.btn-mystic-jade {
+  background: linear-gradient(135deg, #0d7653 0%, #064e3b 50%, #022c22 100%);
+  border: 1px solid #34d399;
+  color: #a7f3d0;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-mystic-jade:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 50%, #064e3b 100%);
+  border-color: #6ee7b7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.btn-mystic-jade:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
