@@ -27,10 +27,12 @@ import {
   tribulate,
   triggerOmen,
 } from './world.js'
+import { PARTS, createDirector, loadLlmConfig, saveLlmConfig } from './screenplay.js'
 
 const audio = createAudio()
 const fx = createVisualFx()
 const world = createWorld()
+const director = createDirector()
 
 const $ = (sel) => document.querySelector(sel)
 
@@ -77,9 +79,9 @@ document.querySelector('#app').innerHTML = `
   <main class="game-shell">
     <section class="hero-heading compact-hero">
       <div>
-        <span class="eyebrow">蒼梧山 · 你是天道的影子</span>
-        <h1>靜觀族人自行演化，<em>或降下賜福與天劫</em></h1>
-        <p>每位弟子都有靈根、性格、壽元與私心。他們會自己修煉、結怨、煉丹、闖蕩；你不必當劍修，只要執掌氣運。</p>
+        <span class="eyebrow">蒼梧山 · 教父三部曲連載</span>
+        <h1>家族史詩自動開拍，<em>權力、血債與輓歌</em></h1>
+        <p>編劇按《教父》三部曲推進：立譜報應、兄弟反目、飛升輓歌。有模型就由 LLM 持續寫場；沒有則由劇組代班，鏡頭不停。</p>
       </div>
       <div class="fortune-mark" aria-label="家族氣運">
         <span>天道視角</span>
@@ -189,6 +191,22 @@ document.querySelector('#app').innerHTML = `
           </div>
         </section>
 
+        <section class="panel screenplay-panel">
+          <div class="panel-heading">
+            <span>
+              <small id="part-english">THE FAMILY</small>
+              <h2 id="part-title">第一部 · 血色開端</h2>
+            </span>
+            <span class="live-badge" id="writer-badge">劇組代班</span>
+          </div>
+          <p class="part-theme" id="part-theme">立譜、報應、無法拒絕的道盟</p>
+          <div class="screenplay-toolbar">
+            <button type="button" class="time-btn" id="next-scene-btn">下一場</button>
+            <button type="button" class="time-btn" id="llm-settings-btn">模型設定</button>
+          </div>
+          <div id="screenplay-list" class="screenplay-list"></div>
+        </section>
+
         <section class="panel log-panel">
           <div class="log-heading">
             <span><i></i><strong>事件流</strong><small>WORLD CHRONICLE</small></span>
@@ -215,6 +233,24 @@ document.querySelector('#app').innerHTML = `
       <p>老祖踏入新境，三道傳承顯現。<br />擇其一，福澤所有自行演化的族人。</p>
       <div id="trait-choices" class="trait-choices"></div>
       <span class="modal-footnote">此選擇將永久銘刻於族譜</span>
+    </div>
+  </div>
+
+  <div id="llm-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="trait-modal llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-modal-title">
+      <small>SCREENWRITER</small>
+      <h2 id="llm-modal-title">連載模型</h2>
+      <p>填 OpenAI 相容接口（DeepSeek / Groq / Ollama）。金鑰只存在你的瀏覽器。空白則用劇組代班，風格同樣跟《教父》三部曲走。</p>
+      <form id="llm-form" class="llm-form">
+        <label>接口 Base URL<input id="llm-base" placeholder="https://api.deepseek.com/v1 或 http://127.0.0.1:11434/v1" /></label>
+        <label>模型名<input id="llm-model" placeholder="deepseek-chat / llama3.1" /></label>
+        <label>API Key<input id="llm-key" type="password" placeholder="可留空（本地 Ollama）" autocomplete="off" /></label>
+        <label class="llm-check"><input id="llm-enabled" type="checkbox" checked /> 允許呼叫 LLM</label>
+        <div class="heaven-row">
+          <button type="submit" class="time-btn">儲存並試寫一場</button>
+          <button type="button" class="time-btn" id="llm-cancel">關閉</button>
+        </div>
+      </form>
     </div>
   </div>
 `
@@ -250,12 +286,34 @@ const els = {
   speedBtn: $('#speed-btn'),
   pulse: $('#pulse-badge'),
   fortune: $('#fortune-word'),
+  partTitle: $('#part-title'),
+  partEnglish: $('#part-english'),
+  partTheme: $('#part-theme'),
+  writerBadge: $('#writer-badge'),
+  screenplayList: $('#screenplay-list'),
+  nextSceneBtn: $('#next-scene-btn'),
+  llmSettingsBtn: $('#llm-settings-btn'),
+  llmModal: $('#llm-modal'),
+  llmForm: $('#llm-form'),
+  llmBase: $('#llm-base'),
+  llmModel: $('#llm-model'),
+  llmKey: $('#llm-key'),
+  llmEnabled: $('#llm-enabled'),
+  llmCancel: $('#llm-cancel'),
 }
 
 const logs = [
   { time: calendarLabel(world), text: '青嵐世家於蒼梧山立下道統。天道臨世，開始觀察族人自行演化。', tone: 'gold' },
   { time: calendarLabel(world), text: '沈清梧入藏經閣，葉疏影在山門等人，白無塵已往後山。', tone: 'jade' },
 ]
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
 
 function addLog(text, tone = '') {
   logs.unshift({ time: calendarLabel(world), text, tone })
@@ -418,11 +476,34 @@ function renderHud() {
   els.speedBtn.textContent = `×${world.speed}`
 }
 
+function renderScreenplay() {
+  const part = PARTS[director.state.part - 1]
+  els.partTitle.textContent = part.title
+  els.partEnglish.textContent = part.english
+  els.partTheme.textContent = part.theme
+  els.writerBadge.textContent = director.state.busy
+    ? '執筆中…'
+    : director.state.source === 'llm' ? 'LLM 連載' : '劇組代班'
+  els.writerBadge.title = director.state.error || ''
+  els.screenplayList.innerHTML = director.state.scenes.map((scene) => `
+    <article class="scene-card">
+      <header>
+        <small>${escapeHtml(scene.slug)}</small>
+        <b>${escapeHtml(scene.title)}</b>
+        <i>${scene.source === 'llm' ? 'LLM' : '劇組'}</i>
+      </header>
+      <p>${escapeHtml(scene.narration)}</p>
+      ${scene.line ? `<blockquote>${escapeHtml(scene.line)}</blockquote>` : ''}
+    </article>
+  `).join('') || '<p class="token-empty">劇本尚未開場。</p>'
+}
+
 function render(opts = {}) {
   const inspect = opts.inspect ?? true
   renderHud()
   renderRoster()
   renderMap()
+  renderScreenplay()
   if (inspect) renderInspector()
 }
 
@@ -578,6 +659,50 @@ els.choices.addEventListener('click', (event) => {
   if (choice) chooseTrait(choice.dataset.trait)
 })
 
+async function publishScene(scene) {
+  if (!scene) return
+  addLog(`【${PARTS[scene.part - 1].title}／${scene.title}】${scene.line || scene.narration}`, 'gold')
+  render()
+}
+
+els.nextSceneBtn.addEventListener('click', async () => {
+  els.nextSceneBtn.disabled = true
+  const scene = await director.writeScene(world, Boolean(director.state.config.baseUrl))
+  els.nextSceneBtn.disabled = false
+  await publishScene(scene)
+})
+
+function openLlmModal() {
+  const config = loadLlmConfig()
+  els.llmBase.value = config.baseUrl || ''
+  els.llmModel.value = config.model || 'deepseek-chat'
+  els.llmKey.value = config.apiKey || ''
+  els.llmEnabled.checked = config.enabled !== false
+  els.llmModal.classList.add('visible')
+  els.llmModal.setAttribute('aria-hidden', 'false')
+}
+
+function closeLlmModal() {
+  els.llmModal.classList.remove('visible')
+  els.llmModal.setAttribute('aria-hidden', 'true')
+}
+
+els.llmSettingsBtn.addEventListener('click', openLlmModal)
+els.llmCancel.addEventListener('click', closeLlmModal)
+els.llmForm.addEventListener('submit', async (event) => {
+  event.preventDefault()
+  saveLlmConfig({
+    enabled: els.llmEnabled.checked,
+    baseUrl: els.llmBase.value,
+    apiKey: els.llmKey.value,
+    model: els.llmModel.value,
+  })
+  director.reloadConfig()
+  closeLlmModal()
+  const scene = await director.writeScene(world, Boolean(els.llmBase.value.trim()))
+  await publishScene(scene)
+})
+
 els.pauseBtn.addEventListener('click', () => {
   world.paused = !world.paused
   renderHud()
@@ -604,7 +729,10 @@ function restartClock() {
   clock = window.setInterval(() => {
     const reports = simulateMonth(world)
     applyReports(reports)
-    render({ inspect: !els.inspector.matches(':hover') })
+    director.onMonth(world).then((scene) => {
+      if (scene) addLog(`【${PARTS[scene.part - 1].title}／${scene.title}】${scene.line || scene.narration}`, 'gold')
+      render({ inspect: !els.inspector.matches(':hover') })
+    })
   }, Math.round(1600 / world.speed))
 }
 
@@ -615,6 +743,7 @@ window.__cultivationFamily = {
     render()
   },
   state: world,
+  director,
   tick: () => {
     const reports = simulateMonth(world)
     applyReports(reports)
@@ -626,3 +755,4 @@ renderLog()
 renderTraits()
 render()
 restartClock()
+director.writeScene(world, false).then(publishScene)

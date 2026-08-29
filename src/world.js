@@ -626,3 +626,17 @@ export function highestRealmName(world) {
 export function peopleIn(world, regionId) {
   return living(world).filter((p) => p.location === regionId)
 }
+
+export function imprint(world, name, thought, mood = 0) {
+  const person = living(world).find((p) => p.name === name)
+  if (!person) return
+  think(person, thought)
+  person.mood = clamp(person.mood + mood, -80, 80)
+}
+
+export function nudgeBond(world, nameA, nameB, delta) {
+  const a = living(world).find((p) => p.name === nameA)
+  const b = living(world).find((p) => p.name === nameB)
+  if (!a || !b) return
+  shiftBond(a, b, delta)
+}
