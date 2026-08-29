@@ -1,15 +1,13 @@
 {
-  "name": "eternal-clan",
+  "name": "cultivation-family",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~6.0.2",
     "vite": "^8.2.2"
   }
 }

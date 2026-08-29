@@ -1,18 +1,465 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/cultivation-seal.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="建立修仙家族、凝聚靈氣、覺醒血脈傳承，讓你的姓氏延續萬古。"
-    />
-    <meta name="theme-color" content="#070c0c" />
-    <title>萬古仙族 · Cultivation Family</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#121212" />
+  <title>修仙家族</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --bg-soft: #1a1a1a;
+      --bg-panel: #1e1e1e;
+      --gold: #d4af37;
+      --gold-soft: #f0d78c;
+      --ink: #f3ead3;
+      --muted: #9a917c;
+      --jade: #7dcea0;
+      --danger: #e07a6a;
+      --line: rgba(212, 175, 55, 0.28);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Noto Serif TC", "Songti TC", "PingFang TC", serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      padding: 12px 12px calc(16px + env(safe-area-inset-bottom));
+      background:
+        radial-gradient(circle at 50% -10%, rgba(212, 175, 55, 0.12), transparent 42%),
+        var(--bg);
+    }
+
+    h1, h2, button { font-family: inherit; }
+
+    .wrap {
+      width: min(520px, 100%);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    header {
+      text-align: center;
+      padding: 8px 0 4px;
+    }
+
+    header h1 {
+      color: var(--gold);
+      font-size: clamp(1.4rem, 6vw, 1.8rem);
+      letter-spacing: 0.28em;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 4px;
+      letter-spacing: 0.12em;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat {
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .stat.wide { grid-column: 1 / -1; }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .stat b {
+      display: block;
+      margin-top: 4px;
+      color: var(--gold-soft);
+      font-size: 1.15rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      border: 1px solid var(--gold);
+      border-radius: 999px;
+      padding: 13px 16px;
+      color: var(--gold-soft);
+      background: linear-gradient(180deg, #2a2416, #1a160e);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.12);
+    }
+
+    .btn:hover { filter: brightness(1.08); }
+
+    .btn:active, .btn.is-pressed {
+      transform: scale(0.96);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn.jade {
+      border-color: #4e8f6e;
+      color: var(--jade);
+      background: linear-gradient(180deg, #173026, #101a16);
+    }
+
+    .btn small {
+      display: block;
+      font-size: 0.72rem;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .traits h2, .log-box h2 {
+      color: var(--gold);
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .trait-list {
+      min-height: 48px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .trait-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      color: var(--jade);
+    }
+
+    .log-box {
+      max-height: 180px;
+      overflow: hidden;
+      background:
+        repeating-linear-gradient(0deg, rgba(212,175,55,0.04) 0 28px, transparent 28px 29px),
+        #16120c;
+    }
+
+    .log-box h2 { margin-bottom: 6px; }
+
+    #log {
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: #e6d5a8;
+      padding-right: 4px;
+    }
+
+    #log p { margin-bottom: 4px; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 12px;
+      transform: translateX(-50%) translateY(-120%);
+      width: min(92vw, 420px);
+      z-index: 50;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--gold);
+      background: rgba(18, 18, 18, 0.96);
+      color: var(--gold-soft);
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      transition: transform 0.35s ease;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.bad { border-color: var(--danger); color: #f0b4ab; }
+
+    .float {
+      position: fixed;
+      z-index: 60;
+      pointer-events: none;
+      color: var(--gold-soft);
+      font-weight: 700;
+      animation: floatUp 1s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -56px); }
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(0,0,0,0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(420px, 100%);
+      background: #1a1a1a;
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .modal-card h3 { color: var(--gold); margin-bottom: 8px; }
+    .modal-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <div class="wrap">
+    <header>
+      <h1>修仙家族</h1>
+      <p>一脈相承 · 問道長生</p>
+    </header>
+
+    <section class="panel stats">
+      <div class="stat"><small>家族靈氣 qi</small><b id="qi">0</b></div>
+      <div class="stat"><small>家族子弟 members</small><b id="members">1</b></div>
+      <div class="stat"><small>老祖境界 realmLevel</small><b id="realm">煉氣期</b></div>
+      <div class="stat"><small>靈氣吸收率 qiRate / 秒</small><b id="rate">0.5</b></div>
+    </section>
+
+    <section class="panel actions">
+      <button class="btn" id="gather" type="button">🧘‍♂️ 閉關修煉<small>點擊凝聚靈氣</small></button>
+      <button class="btn jade" id="recruit" type="button">👶 繁衍子弟<small id="recruitCost">消耗 20 靈氣</small></button>
+      <button class="btn" id="break" type="button">⚡ 老祖突破<small id="breakCost">消耗 80 靈氣</small></button>
+    </section>
+
+    <section class="panel traits">
+      <h2>🧬 家族天賦</h2>
+      <div class="trait-list" id="traits">尚無天賦。老祖突破後可覺醒血脈。</div>
+    </section>
+
+    <section class="panel log-box">
+      <h2>📜 家族史記</h2>
+      <div id="log"></div>
+    </section>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <h3 id="modalTitle">血脈覺醒</h3>
+      <p id="modalText"></p>
+      <button class="btn" id="modalOk" type="button">銘刻傳承</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const REALMS = ["煉氣期", "築基期", "金丹期", "元嬰期", "化神期", "煉虛期", "合體期", "大乘期"];
+      const TRAIT_POOL = [
+        { id: "many", name: "多子多福", desc: "繁衍成本降低 20%" },
+        { id: "root", name: "天靈根", desc: "靈氣獲取加倍" }
+      ];
+      const EVENTS = [
+        { good: true, text: "子弟在後山發現百年靈芝，靈氣大增！", qi: 80, members: 0 },
+        { good: true, text: "家族喜結良緣，人丁興旺。", qi: 0, members: 1 },
+        { good: false, text: "仇家踢館，山門受損，靈氣散逸。", qi: -50, members: 0 },
+        { good: false, text: "仇家夜襲，一名子弟失散。", qi: 0, members: -1 }
+      ];
+
+      const state = {
+        qi: 0,
+        members: 1,
+        realmLevel: 0,
+        recruitTimes: 0,
+        traits: [],
+        pendingTrait: null
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const qiEl = $("qi");
+      const membersEl = $("members");
+      const realmEl = $("realm");
+      const rateEl = $("rate");
+      const traitsEl = $("traits");
+      const logEl = $("log");
+      const toastEl = $("toast");
+      const modal = $("modal");
+      const modalText = $("modalText");
+      const recruitCostEl = $("recruitCost");
+      const breakCostEl = $("breakCost");
+      const gatherBtn = $("gather");
+      const recruitBtn = $("recruit");
+      const breakBtn = $("break");
+
+      function hasTrait(id) {
+        return state.traits.indexOf(id) !== -1;
+      }
+
+      function qiRate() {
+        var rate = state.members * (state.realmLevel + 1) * 0.5;
+        if (hasTrait("root")) rate *= 2;
+        return rate;
+      }
+
+      function clickGain() {
+        return hasTrait("root") ? 20 : 10;
+      }
+
+      function recruitCost() {
+        var cost = Math.floor(20 * Math.pow(1.45, state.recruitTimes));
+        if (hasTrait("many")) cost = Math.floor(cost * 0.8);
+        return Math.max(10, cost);
+      }
+
+      function breakCost() {
+        return Math.floor(80 * Math.pow(2.2, state.realmLevel));
+      }
+
+      function log(text) {
+        var p = document.createElement("p");
+        p.textContent = "【" + new Date().toLocaleTimeString("zh-Hant", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + "】" + text;
+        logEl.insertBefore(p, logEl.firstChild);
+      }
+
+      function render() {
+        qiEl.textContent = Math.floor(state.qi);
+        membersEl.textContent = String(state.members);
+        realmEl.textContent = REALMS[state.realmLevel] || REALMS[REALMS.length - 1];
+        rateEl.textContent = qiRate().toFixed(1);
+        recruitCostEl.textContent = "消耗 " + recruitCost() + " 靈氣";
+        breakCostEl.textContent = state.realmLevel >= REALMS.length - 1 ? "已臻化境" : "消耗 " + breakCost() + " 靈氣";
+        recruitBtn.disabled = state.qi < recruitCost();
+        breakBtn.disabled = state.realmLevel >= REALMS.length - 1 || state.qi < breakCost() || !!state.pendingTrait;
+        if (!state.traits.length) {
+          traitsEl.textContent = "尚無天賦。老祖突破後可覺醒血脈。";
+        } else {
+          traitsEl.innerHTML = state.traits.map(function (id) {
+            var t = TRAIT_POOL.filter(function (x) { return x.id === id; })[0];
+            return '<div class="trait-item">' + t.name + " · " + t.desc + "</div>";
+          }).join("");
+        }
+      }
+
+      function floatText(x, y, amount) {
+        var el = document.createElement("span");
+        el.className = "float";
+        el.textContent = "+" + amount;
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+        document.body.appendChild(el);
+        el.addEventListener("animationend", function () { el.remove(); });
+      }
+
+      function press(btn) {
+        btn.classList.add("is-pressed");
+        setTimeout(function () { btn.classList.remove("is-pressed"); }, 120);
+      }
+
+      function toast(text, bad) {
+        toastEl.textContent = text;
+        toastEl.className = "toast show" + (bad ? " bad" : "");
+        clearTimeout(toast.tid);
+        toast.tid = setTimeout(function () { toastEl.className = "toast"; }, 3000);
+      }
+
+      gatherBtn.addEventListener("click", function (e) {
+        press(gatherBtn);
+        var gain = clickGain();
+        state.qi += gain;
+        floatText(e.clientX, e.clientY, gain);
+        render();
+      });
+
+      recruitBtn.addEventListener("click", function () {
+        var cost = recruitCost();
+        if (state.qi < cost) return;
+        press(recruitBtn);
+        state.qi -= cost;
+        state.members += 1;
+        state.recruitTimes += 1;
+        log("繁衍子弟成功，族人增至 " + state.members + "。");
+        render();
+      });
+
+      breakBtn.addEventListener("click", function () {
+        var cost = breakCost();
+        if (state.qi < cost || state.realmLevel >= REALMS.length - 1 || state.pendingTrait) return;
+        press(breakBtn);
+        state.qi -= cost;
+        state.realmLevel += 1;
+        log("老祖突破至「" + REALMS[state.realmLevel] + "」！");
+        var unused = TRAIT_POOL.filter(function (t) { return !hasTrait(t.id); });
+        var pick = unused.length ? unused[Math.floor(Math.random() * unused.length)] : TRAIT_POOL[Math.floor(Math.random() * TRAIT_POOL.length)];
+        state.pendingTrait = pick.id;
+        modalText.textContent = "獲得天賦：" + pick.name + "（" + pick.desc + "）";
+        modal.className = "modal open";
+        render();
+      });
+
+      $("modalOk").addEventListener("click", function () {
+        var id = state.pendingTrait;
+        if (id && state.traits.indexOf(id) === -1) state.traits.push(id);
+        var t = TRAIT_POOL.filter(function (x) { return x.id === id; })[0];
+        if (t) log("銘刻家族天賦「" + t.name + "」。");
+        state.pendingTrait = null;
+        modal.className = "modal";
+        render();
+      });
+
+      setInterval(function () {
+        state.qi += qiRate();
+        render();
+      }, 1000);
+
+      setInterval(function () {
+        if (Math.random() > 0.5) return;
+        var ev = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+        state.qi = Math.max(0, state.qi + ev.qi);
+        state.members = Math.max(1, state.members + ev.members);
+        toast(ev.text, !ev.good);
+        log((ev.good ? "吉：" : "凶：") + ev.text);
+        render();
+      }, 15000);
+
+      log("修仙家族初立，老祖開始煉氣。");
+      render();
+    })();
+  </script>
+</body>
 </html>
