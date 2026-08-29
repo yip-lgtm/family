@@ -283,7 +283,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <div class="panel-heading">
           <div>
             <span class="eyebrow">FAMILY HERITAGE</span>
-            <h2 id="heritage-heading">家族傳承</h2>
+            <h2 id="heritage-heading">🧬 家族傳承</h2>
           </div>
           <span class="dna-mark" aria-hidden="true">⌁</span>
         </div>

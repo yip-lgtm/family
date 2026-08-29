@@ -20,6 +20,8 @@ npm install
 npm run dev
 ```
 
+Dev server: [http://127.0.0.1:43180](http://127.0.0.1:43180).
+
 建立正式版本：
 
 ```bash
