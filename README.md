@@ -11,8 +11,10 @@ embedded via the official player (not downloaded or rehosted).
 
 Gameplay is inspired by Cultivation World Simulator, with a living clan of
 rule-driven cultivators. A screenwriter layer keeps generating Godfather-trilogy
-set pieces (rise, betrayal, elegy). Connect an OpenAI-compatible LLM in
-「模型設定」for live scenes, or leave it empty to use the built-in studio.
+set pieces (rise, betrayal, elegy). Connect OpenRouter in 「模型設定」: base `https://openrouter.ai/api/v1`,
+model `openrouter/free`, and paste a free API key from
+https://openrouter.ai/keys (stored only in the browser). Without a key the
+built-in studio writer continues the same trilogy.
 
 Live site: https://yip-lgtm.github.io/family/
 

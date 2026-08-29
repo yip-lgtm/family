@@ -27,7 +27,7 @@ import {
   tribulate,
   triggerOmen,
 } from './world.js'
-import { PARTS, createDirector, loadLlmConfig, saveLlmConfig } from './screenplay.js'
+import { PARTS, createDirector, loadLlmConfig, saveLlmConfig, DEFAULT_MODEL, OPENROUTER_BASE, llmReady } from './screenplay.js'
 
 const audio = createAudio()
 const fx = createVisualFx()
@@ -239,12 +239,21 @@ document.querySelector('#app').innerHTML = `
   <div id="llm-modal" class="modal-backdrop" aria-hidden="true">
     <div class="trait-modal llm-modal" role="dialog" aria-modal="true" aria-labelledby="llm-modal-title">
       <small>SCREENWRITER</small>
-      <h2 id="llm-modal-title">連載模型</h2>
-      <p>填 OpenAI 相容接口（DeepSeek / Groq / Ollama）。金鑰只存在你的瀏覽器。空白則用劇組代班，風格同樣跟《教父》三部曲走。</p>
+      <h2 id="llm-modal-title">OpenRouter 免費模型</h2>
+      <p>預填 <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer">OpenRouter</a> 接口與免費路由 <code>openrouter/free</code>。到 Keys 頁複製 <code>sk-or-...</code> 貼上即可連載。金鑰只存在你的瀏覽器。沒有金鑰則劇組代班，風格同樣跟《教父》三部曲走。</p>
       <form id="llm-form" class="llm-form">
-        <label>接口 Base URL<input id="llm-base" placeholder="https://api.deepseek.com/v1 或 http://127.0.0.1:11434/v1" /></label>
-        <label>模型名<input id="llm-model" placeholder="deepseek-chat / llama3.1" /></label>
-        <label>API Key<input id="llm-key" type="password" placeholder="可留空（本地 Ollama）" autocomplete="off" /></label>
+        <label>接口 Base URL<input id="llm-base" value="https://openrouter.ai/api/v1" placeholder="https://openrouter.ai/api/v1" /></label>
+        <label>免費模型
+          <input id="llm-model" list="llm-free-models" value="openrouter/free" placeholder="openrouter/free" />
+          <datalist id="llm-free-models">
+            <option value="openrouter/free">openrouter/free 自動揀免費模型</option>
+            <option value="minimax/minimax-m2.7:free"></option>
+            <option value="z-ai/glm-5.2:free"></option>
+            <option value="google/gemma-4-31b-it:free"></option>
+            <option value="nvidia/nemotron-3-super-120b-a12b:free"></option>
+          </datalist>
+        </label>
+        <label>OpenRouter API Key<input id="llm-key" type="password" placeholder="sk-or-v1-… 必填" autocomplete="off" /></label>
         <label class="llm-check"><input id="llm-enabled" type="checkbox" checked /> 允許呼叫 LLM</label>
         <div class="heaven-row">
           <button type="submit" class="time-btn">儲存並試寫一場</button>
@@ -483,7 +492,9 @@ function renderScreenplay() {
   els.partTheme.textContent = part.theme
   els.writerBadge.textContent = director.state.busy
     ? '執筆中…'
-    : director.state.source === 'llm' ? 'LLM 連載' : '劇組代班'
+    : director.state.source === 'llm'
+      ? 'OpenRouter'
+      : llmReady(director.state.config) ? '劇組代班' : '欠 API Key'
   els.writerBadge.title = director.state.error || ''
   els.screenplayList.innerHTML = director.state.scenes.map((scene) => `
     <article class="scene-card">
@@ -667,15 +678,15 @@ async function publishScene(scene) {
 
 els.nextSceneBtn.addEventListener('click', async () => {
   els.nextSceneBtn.disabled = true
-  const scene = await director.writeScene(world, Boolean(director.state.config.baseUrl))
+  const scene = await director.writeScene(world, true)
   els.nextSceneBtn.disabled = false
   await publishScene(scene)
 })
 
 function openLlmModal() {
   const config = loadLlmConfig()
-  els.llmBase.value = config.baseUrl || ''
-  els.llmModel.value = config.model || 'deepseek-chat'
+  els.llmBase.value = config.baseUrl || OPENROUTER_BASE
+  els.llmModel.value = config.model || DEFAULT_MODEL
   els.llmKey.value = config.apiKey || ''
   els.llmEnabled.checked = config.enabled !== false
   els.llmModal.classList.add('visible')
@@ -699,7 +710,7 @@ els.llmForm.addEventListener('submit', async (event) => {
   })
   director.reloadConfig()
   closeLlmModal()
-  const scene = await director.writeScene(world, Boolean(els.llmBase.value.trim()))
+  const scene = await director.writeScene(world, llmReady(director.state.config))
   await publishScene(scene)
 })
 

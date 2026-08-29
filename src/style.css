@@ -2138,10 +2138,14 @@ footer a {
   font: inherit;
 }
 
-.llm-check {
-  flex-direction: row !important;
-  align-items: center;
-  gap: 8px !important;
+.llm-form a {
+  color: var(--gold-bright);
+}
+
+.llm-form code,
+.llm-modal p code {
+  color: var(--gold-bright);
+  font-size: 10px;
 }
 
 @media (max-width: 1120px) {

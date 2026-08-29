@@ -22,28 +22,57 @@ export const PARTS = [
 ]
 
 const STORAGE_KEY = 'qinglan-llm-config'
+export const OPENROUTER_BASE = 'https://openrouter.ai/api/v1'
+export const DEFAULT_MODEL = 'openrouter/free'
+export const FREE_MODELS = [
+  'openrouter/free',
+  'minimax/minimax-m2.7:free',
+  'z-ai/glm-5.2:free',
+  'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+]
+
+const LLM_COOLDOWN_MS = 120000
+
+function blankConfig() {
+  return {
+    enabled: true,
+    baseUrl: OPENROUTER_BASE,
+    apiKey: '',
+    model: DEFAULT_MODEL,
+  }
+}
 
 export function loadLlmConfig() {
   try {
-    return {
-      enabled: true,
-      baseUrl: '',
-      apiKey: '',
-      model: 'deepseek-chat',
-      ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'),
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+    const merged = { ...blankConfig(), ...saved }
+    if (!merged.baseUrl || merged.baseUrl.includes('deepseek.com') || merged.baseUrl.includes('11434')) {
+      merged.baseUrl = OPENROUTER_BASE
     }
+    if (!merged.model || merged.model === 'deepseek-chat' || merged.model === 'llama3.1') {
+      merged.model = DEFAULT_MODEL
+    }
+    return merged
   } catch {
-    return { enabled: true, baseUrl: '', apiKey: '', model: 'deepseek-chat' }
+    return blankConfig()
   }
 }
 
 export function saveLlmConfig(config) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     enabled: Boolean(config.enabled),
-    baseUrl: String(config.baseUrl || '').trim(),
+    baseUrl: String(config.baseUrl || OPENROUTER_BASE).trim() || OPENROUTER_BASE,
     apiKey: String(config.apiKey || '').trim(),
-    model: String(config.model || 'deepseek-chat').trim(),
+    model: String(config.model || DEFAULT_MODEL).trim() || DEFAULT_MODEL,
   }))
+}
+
+export function llmReady(config = loadLlmConfig()) {
+  if (!config.enabled || !config.baseUrl) return false
+  if (/127\.0\.0\.1|localhost/i.test(config.baseUrl)) return true
+  return Boolean(config.apiKey)
 }
 
 function pick(list) {
@@ -205,7 +234,7 @@ async function requestLlm(config, world, part, previousTitles) {
   const url = `${base}/chat/completions`
   const shot = snapshot(world, part)
   const body = {
-    model: config.model || 'deepseek-chat',
+    model: config.model || DEFAULT_MODEL,
     temperature: 0.95,
     max_tokens: 420,
     messages: [
@@ -235,8 +264,12 @@ async function requestLlm(config, world, part, previousTitles) {
   }
   const headers = { 'Content-Type': 'application/json' }
   if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`
+  if (/openrouter\.ai/i.test(base)) {
+    headers['HTTP-Referer'] = window.location.origin || 'https://yip-lgtm.github.io'
+    headers['X-Title'] = 'Qinglan Cultivation Family'
+  }
   const ctrl = new AbortController()
-  const timer = window.setTimeout(() => ctrl.abort(), 14000)
+  const timer = window.setTimeout(() => ctrl.abort(), 20000)
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -244,10 +277,13 @@ async function requestLlm(config, world, part, previousTitles) {
       body: JSON.stringify(body),
       signal: ctrl.signal,
     })
-    if (!response.ok) throw new Error(`LLM ${response.status}`)
-    const json = await response.json()
+    const json = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const detail = json.error?.message || json.message || json.error || `HTTP ${response.status}`
+      throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail))
+    }
     const text = json.choices?.[0]?.message?.content || json.content || ''
-    if (!text) throw new Error('empty')
+    if (!text) throw new Error('模型沒有寫出內容')
     return parseModelText(text)
   } finally {
     window.clearTimeout(timer)
@@ -269,6 +305,7 @@ export function createDirector() {
     busy: false,
     source: 'studio',
     error: '',
+    lastLlmAt: 0,
     config: loadLlmConfig(),
   }
 
@@ -285,15 +322,19 @@ export function createDirector() {
     const titles = state.scenes.map((scene) => scene.title)
     let scene
     const cfg = state.config
-    const canLlm = Boolean(forceLlm || (cfg.enabled && cfg.baseUrl))
+    const prefer = Boolean(forceLlm)
+    const cooled = Date.now() - state.lastLlmAt >= LLM_COOLDOWN_MS
+    const canLlm = llmReady(cfg) && (prefer || cooled)
     if (canLlm) {
       try {
         const generated = await requestLlm(cfg, world, state.part, titles.slice(0, 8))
         scene = { ...generated, part: state.part, source: 'llm' }
         state.source = 'llm'
         state.error = ''
+        state.lastLlmAt = Date.now()
       } catch (error) {
         state.error = error.message || 'LLM 失敗'
+        state.lastLlmAt = Date.now()
         scene = { ...studioScene(world, state.part, state.beat), source: 'studio' }
         state.source = 'studio'
       }
