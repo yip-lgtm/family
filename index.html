@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☯</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>修仙家族 · Cultivation Family</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="toast-container" aria-live="polite"></div>
+
+    <div id="floating-text-layer"></div>
+
+    <div id="trait-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="trait-modal-title">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <h2 id="trait-modal-title">🌟 天賦覺醒</h2>
+        <p class="modal-subtitle">老祖突破成功！請選擇一項家族傳承天賦：</p>
+        <div id="trait-choices" class="trait-choices"></div>
+      </div>
+    </div>
+
+    <div class="game-shell">
+      <header class="game-header">
+        <div class="title-block">
+          <h1>修仙家族</h1>
+          <p class="subtitle">Cultivation Family · Idle Ascension</p>
+        </div>
+        <div class="header-ornament" aria-hidden="true">☯</div>
+      </header>
+
+      <main class="game-grid">
+        <section class="panel stats-panel">
+          <h2 class="panel-title">家族概況</h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">靈氣 Qi</span>
+              <span id="qi-display" class="stat-value gold">0</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">族人 Members</span>
+              <span id="members-display" class="stat-value jade">1</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">老祖境界</span>
+              <span id="level-display" class="stat-value gold">練氣一層</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">每秒靈氣</span>
+              <span id="qps-display" class="stat-value jade">0/s</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel actions-panel">
+          <h2 class="panel-title">修煉行動</h2>
+          <div class="action-buttons">
+            <button id="gather-btn" class="btn btn-primary" type="button">
+              <span class="btn-icon">🌀</span>
+              <span class="btn-text">閉關修煉 Gather Qi</span>
+              <span class="btn-hint" id="gather-hint">+10 Qi</span>
+            </button>
+            <button id="recruit-btn" class="btn btn-secondary" type="button">
+              <span class="btn-icon">👨‍👩‍👧‍👦</span>
+              <span class="btn-text">招募族人 Recruit</span>
+              <span class="btn-hint" id="recruit-hint">100 Qi</span>
+            </button>
+            <button id="breakthrough-btn" class="btn btn-accent" type="button">
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">老祖突破 Breakthrough</span>
+              <span class="btn-hint" id="breakthrough-hint">100 Qi</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="panel heritage-panel">
+          <h2 class="panel-title">🧬 家族傳承 <span class="panel-title-en">Family Heritage</span></h2>
+          <ul id="heritage-list" class="heritage-list">
+            <li class="heritage-empty">尚無天賦傳承。老祖突破後可覺醒家族天賦。</li>
+          </ul>
+        </section>
+
+        <section class="panel log-panel">
+          <h2 class="panel-title">家族志 <span class="panel-title-en">Chronicle</span></h2>
+          <div id="log-box" class="log-scroll" role="log" aria-live="polite">
+            <p class="log-entry log-system">【系統】修仙家族正式成立，老祖開始閉關修煉…</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
