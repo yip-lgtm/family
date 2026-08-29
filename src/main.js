@@ -370,7 +370,16 @@ function floatingQi(x, y, amount) {
   float.style.left = `${x}px`
   float.style.top = `${y}px`
   document.body.append(float)
-  float.addEventListener('animationend', () => float.remove())
+  float.addEventListener('animationend', () => float.remove(), { once: true })
+  window.setTimeout(() => float.remove(), 1400)
+}
+
+function pointerPoint(event) {
+  const target = event.currentTarget
+  const rect = target instanceof HTMLElement ? target.getBoundingClientRect() : null
+  const x = event.clientX || (rect ? rect.left + rect.width / 2 : window.innerWidth / 2)
+  const y = event.clientY || (rect ? rect.top + rect.height / 2 : window.innerHeight / 2)
+  return { x, y }
 }
 
 function pressEffect(button) {
@@ -465,8 +474,9 @@ function scheduleEvent() {
 elements.gatherButton.addEventListener('click', (event) => {
   const amount = clickYield()
   state.qi += amount
-  floatingQi(event.clientX, event.clientY, amount)
-  fx.burst(event.clientX, event.clientY)
+  const { x, y } = pointerPoint(event)
+  floatingQi(x, y, amount)
+  fx.burst(x, y)
   audio.playQing()
   pressEffect(elements.gatherButton)
   render()

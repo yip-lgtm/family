@@ -1279,7 +1279,7 @@ footer p {
 
 .floating-qi {
   position: fixed;
-  z-index: 100;
+  z-index: 9999;
   pointer-events: none;
   color: var(--jade-bright);
   font-family: Cinzel, 'Noto Serif TC', serif;
@@ -1792,5 +1792,16 @@ footer p {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .floating-qi {
+    opacity: 1;
+    transform: translate(-50%, -80px);
+    animation: none !important;
+  }
+
+  .screen-flash.is-on {
+    animation: none !important;
+    opacity: 0.65;
   }
 }
