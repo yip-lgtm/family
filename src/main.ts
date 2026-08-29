@@ -517,7 +517,9 @@ function spawnFloatingText(event: MouseEvent, amount: number): void {
   floating.style.left = `${event.clientX}px`
   floating.style.top = `${event.clientY}px`
   document.body.append(floating)
-  floating.addEventListener('animationend', () => floating.remove(), { once: true })
+  const dismiss = () => floating.remove()
+  floating.addEventListener('animationend', dismiss, { once: true })
+  window.setTimeout(dismiss, 1600)
 }
 
 function gatherQi(event: MouseEvent): void {
